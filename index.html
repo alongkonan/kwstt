@@ -1,0 +1,163 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ระบบจัดตารางสอน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f6f8;--sf:#fff;--tx:#1b2330;--mu:#667085;--bd:#d9dde5;--ac:#2556d9;--er:#c62828;--ok:#1a7f4b;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12151b;--sf:#1b202a;--tx:#e8ebf0;--mu:#98a2b3;--bd:#323a48;--ac:#7aa2ff;--er:#ff7b72;--ok:#4cc38a;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#12151b;--sf:#1b202a;--tx:#e8ebf0;--mu:#98a2b3;--bd:#323a48;--ac:#7aa2ff;--er:#ff7b72;--ok:#4cc38a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Sarabun,system-ui,sans-serif}
+header{padding:12px 16px 0}h1{font-size:19px;margin:0 0 8px}
+nav{display:flex;gap:4px;overflow-x:auto;padding:0 12px;border-bottom:1px solid var(--bd)}
+nav button{border:0;background:none;color:var(--mu);padding:8px 12px;font:inherit;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+nav button.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+main{padding:14px}.card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--bd);padding:4px 6px;text-align:left;font-size:13px;vertical-align:top}
+th{background:var(--bg)}button,select,input,textarea{font:inherit;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:4px 8px}
+button{cursor:pointer}.p{background:var(--ac);color:var(--sf);border-color:var(--ac)}.d{color:var(--er)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.mu{color:var(--mu)}.er{color:var(--er)}.ok{color:var(--ok)}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.k{font-size:26px;font-weight:600}
+.cell{min-width:92px;height:54px;cursor:pointer;font-size:12px}.cell.bad{outline:2px solid var(--er);outline-offset:-2px}.off{background:repeating-linear-gradient(45deg,transparent 0 5px,var(--bd) 5px 7px)}
+.lunch{background:var(--bg);text-align:center;color:var(--mu);width:28px}
+input[type=text],input[type=number]{width:100%;min-width:60px;box-sizing:border-box}dialog{border:1px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--tx)}
+#pr{display:none}@page{size:A4 landscape;margin:10mm}
+@media print{header,nav,main,dialog{display:none!important}body{background:#fff}#pr{display:block;color:#000;background:#fff;font-family:THSarabunPSK,'TH Sarabun PSK','THSarabunPSK','TH SarabunPSK',Sarabun,sans-serif;font-size:var(--pfs,18px);line-height:1.15}#pr h2,#pr h3{text-align:center;margin:2px}#pr table{width:100%;margin-top:8px}#pr th,#pr td{border:1px solid #000;color:#000;background:#fff;text-align:center;vertical-align:middle;font-size:inherit;height:52px;padding:2px}#pr th{background:#eee}#pr .sg{display:flex;justify-content:space-around;margin-top:28px}}
+@font-face{font-family:THSarabunPSK;src:url(THSarabun.ttf),url(https://kritbio.vercel.app/THSarabun.ttf)}
+#pr.cap{display:block;position:absolute;left:-99999px;top:0;color:#000;background:#fff;font-family:THSarabunPSK,'TH Sarabun PSK',Sarabun,sans-serif;font-size:var(--pfs,18px);line-height:1.15}
+#pr.cap section{width:1123px;height:794px;box-sizing:border-box;padding:36px 40px;background:#fff;overflow:hidden}
+#pr.cap h2,#pr.cap h3{text-align:center;margin:2px}#pr.cap table{width:100%;margin-top:8px}
+#pr.cap th,#pr.cap td{border:1px solid #000;color:#000;background:#fff;text-align:center;vertical-align:middle;font-size:inherit;height:52px;padding:2px}#pr.cap th{background:#eee}#pr.cap .sg{display:flex;justify-content:space-around;margin-top:28px}
+@media screen{
+:root{--bg:#f3f5f9;--sf:#fff;--tx:#172033;--mu:#6b7589;--bd:#e3e7ef;--ac:#4f46e5;--ac2:#eceeff;--on:#fff;--er:#d92d20;--ok:#12805c;--sh:0 1px 3px rgba(20,30,60,.08),0 6px 18px rgba(20,30,60,.05)}
+body{font-size:16px}header{padding:16px 20px 6px}h1{font-size:21px;font-weight:600;margin:0}
+nav{position:fixed;z-index:20;left:0;right:0;bottom:0;background:var(--sf);border:0;border-top:1px solid var(--bd);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));gap:2px}
+nav button{display:flex;flex-direction:column;align-items:center;font-size:11px;padding:4px 10px;border:0;border-radius:10px;min-width:62px;line-height:1.3}
+nav button i{font-style:normal;font-size:20px}nav button.on{background:var(--ac2);color:var(--ac);border:0}
+main{padding:12px 14px 96px;max-width:1300px}
+.card{border-radius:14px;box-shadow:var(--sh);padding:16px;border-color:var(--bd)}
+th{font-size:12px;color:var(--mu);font-weight:600}td,th{border-color:var(--bd)}tr:hover>td:not(.cell):not(.lunch){background:var(--bg)}
+button,select,input,textarea{border-radius:9px;padding:7px 11px;border-color:var(--bd)}button{transition:.15s}button:hover{filter:brightness(.96)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offset:-1px}
+.p{background:var(--ac);color:var(--on);border-color:var(--ac);font-weight:600;box-shadow:var(--sh)}.d{border-color:transparent;background:transparent}
+.k{font-size:30px;font-weight:600;color:var(--ac)}.g .card{margin:0}
+.cell{border-left:3px solid var(--ac);transition:.15s}.cell:hover{filter:brightness(.93)}.cell.bad{border-left-color:var(--er)}
+.sc{border-radius:10px}.sc table{border-radius:10px}
+@media(min-width:900px){nav{top:0;bottom:auto;right:auto;width:210px;flex-direction:column;border:0;border-right:1px solid var(--bd);padding:18px 10px;overflow:visible}nav button{flex-direction:row;gap:10px;font-size:15px;min-width:0;width:100%;justify-content:flex-start;padding:9px 12px}header,main{margin-left:210px}main{padding-bottom:30px}}
+}
+@media screen and (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1117;--sf:#171b24;--tx:#eceff5;--mu:#9aa4b8;--bd:#2a3140;--ac:#9aa2ff;--ac2:#242a4a;--on:#0e1117;--er:#ff7b72;--ok:#4cc38a;--sh:none}}
+:root[data-theme=dark]{--bg:#0e1117;--sf:#171b24;--tx:#eceff5;--mu:#9aa4b8;--bd:#2a3140;--ac:#9aa2ff;--ac2:#242a4a;--on:#0e1117;--er:#ff7b72;--ok:#4cc38a;--sh:none}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script></head><body>
+<header><h1>🏫 ระบบจัดตารางสอน โรงเรียนมัธยมศึกษา (ม.1–6)</h1></header><nav id="nv"></nav><main id="m"></main>
+<dialog id="dg"></dialog><div id="pr"></div>
+<script>
+const $=s=>document.querySelector(s),DN=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'],uid=()=>Math.random().toString(36).slice(2,8);
+let S,V={tab:'dash',mode:'cls',sel:null,ac:null,msg:'',pdf:{mode:'cls',sel:'all',school:'โรงเรียน................................',term:'ภาคเรียนที่ 1 ปีการศึกษา 2569',fs:18}};
+const save=()=>{try{localStorage.setItem('tt2',JSON.stringify(S))}catch(e){}};
+function norm(){S.fail=S.fail||[];S.tt=S.tt||{};for(const k of['teachers','subjects','classes','rooms','asg'])S[k]=S[k]||[];S.cfg=Object.assign({days:5,per:8,lunch:4,start:'08:30',len:50},S.cfg);S.teachers.forEach(t=>t.off=t.off||[])}
+function clean(){for(const c in S.tt)for(const k in S.tt[c])if(!S.asg.some(g=>g.id==S.tt[c][k].a))delete S.tt[c][k]}
+function fit(){const c=S.cfg,ok=k=>{const[d,p]=k.split('-').map(Number);return d<c.days&&p<c.per};for(const a in S.tt)for(const k in S.tt[a])if(!ok(k))delete S.tt[a][k];S.teachers.forEach(t=>t.off=t.off.filter(ok))}
+function demo(){
+ const fn='สมชาย สมหญิง วิชัย วิภา ประเสริฐ ประภา สุรชัย สุนิสา อนุชา อรุณ กิตติ กัลยา ธนา ธิดา นพดล นภา บุญชู บุษบา มานะ มาลี'.split(' '),ln='ใจดี รักเรียน มั่นคง ศรีสุข วงศ์ไทย แก้วมณี ทองดี พึ่งบุญ เจริญผล'.split(' ');
+ const subs=[['ท','ภาษาไทย',3],['ค','คณิตศาสตร์',3],['ว','วิทยาศาสตร์',3,'lab',1],['อ','ภาษาอังกฤษ',3],['ส','สังคมศึกษา',3],['พ','สุขศึกษา-พลศึกษา',2,'gym',1],['ศ','ศิลปะ',1],['ง','การงานอาชีพ',1],['คอม','คอมพิวเตอร์',2,'com',1],['ดน','ดนตรี',1,'music'],['ลก','วิชาเลือก (ม.4-6)',4,'',0,4]];
+ const o={cfg:{days:5,per:8,lunch:4,start:'08:30',len:50},rooms:[{id:'lab',name:'ห้องวิทยาศาสตร์',n:4},{id:'com',name:'ห้องคอมพิวเตอร์',n:3},{id:'gym',name:'โรงยิม/สนาม',n:2},{id:'music',name:'ห้องดนตรี',n:1}],subjects:[],teachers:[],classes:[],asg:[],tt:{},fail:[]};
+ for(let l=1;l<=6;l++)for(let r=1;r<=6;r++)o.classes.push({id:'c'+l+r,name:`ม.${l}/${r}`,lv:l,size:33});
+ let ti=0;
+ subs.forEach(s=>{o.subjects.push({id:s[0],name:s[1],hrs:s[2],room:s[3]||'',dbl:!!s[4]});
+  const cs=o.classes.filter(c=>c.lv>=(s[5]||1)),n=Math.ceil(cs.length*s[2]/18),ts=[];
+  for(let i=0;i<n;i++){const t={id:'t'+(++ti),name:'ครู'+fn[(ti*3)%fn.length]+' '+ln[ti%ln.length],dept:s[1],max:6,off:[]};o.teachers.push(t);ts.push(t)}
+  cs.forEach((c,i)=>o.asg.push({id:uid(),cls:c.id,sub:s[0],t:ts[i%n].id}))});
+ return o}
+try{S=JSON.parse(localStorage.getItem('tt2'))}catch(e){}if(!S)S=demo();norm();
+const K=(d,p)=>d+'-'+p,byId=(a,i)=>S[a].find(x=>x.id===i),P=()=>[...Array(S.cfg.per).keys()],Dy=()=>[...Array(S.cfg.days).keys()];
+const tm=p=>{let[h,m]=S.cfg.start.split(':').map(Number),t=h*60+m+(p)*S.cfg.len+(p>=S.cfg.lunch?60:0);return String(t/60|0).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+const col=id=>{let h=0;for(const c of id)h=(h*37+c.charCodeAt(0))%360;return`hsl(${h} 70% 50% / .22)`};
+// ---------- scheduler ----------
+function gen(){
+ const sb=Object.fromEntries(S.subjects.map(s=>[s.id,s])),tc=Object.fromEntries(S.teachers.map(t=>[t.id,t])),rm=Object.fromEntries(S.rooms.map(r=>[r.id,r.n])),L=S.cfg.lunch,np=S.cfg.per;
+ const load={};S.asg.forEach(g=>load[g.t]=(load[g.t]||0)+(sb[g.sub]?.hrs||0));let best=null;
+ for(let a=0;a<30;a++){
+  const tt={},tO={},cO={},rO={},td={},gd={},need={};let fail=[];
+  S.asg.forEach(g=>need[g.id]=sb[g.sub]?.hrs||0);
+  const put=(c,k,g,lock)=>{(tt[c]=tt[c]||{})[k]={a:g.id,lock};cO[c+k]=1;tO[g.t+k]=1;const r=sb[g.sub]?.room;if(r)rO[r+k]=(rO[r+k]||0)+1;const d=k.split('-')[0];td[g.t+d]=(td[g.t+d]||0)+1;gd[g.id+d]=(gd[g.id+d]||0)+1;need[g.id]--};
+  for(const c in S.tt)for(const k in S.tt[c]){const x=S.tt[c][k],g=S.asg.find(z=>z.id===x.a);if(g&&x.lock)put(c,k,g,1)}
+  const U=[];S.asg.forEach(g=>{let n=need[g.id];if(n<=0||!sb[g.sub]||!tc[g.t])return;if(sb[g.sub].dbl&&n>=2){U.push({g,z:2});n-=2}while(n-->0)U.push({g,z:1})});
+  U.forEach(u=>u.w=(rm[sb[u.g.sub].room]?-60:0)-(load[u.g.t]||0)-u.z*20+Math.random()*40);U.sort((x,y)=>x.w-y.w);
+  for(const{g,z}of U){const s=sb[g.sub],t=tc[g.t];let bs=1e9,bk=null;
+   for(let d=0;d<S.cfg.days;d++)for(let p=0;p+z<=np;p++){
+    if(p<L&&p+z>L)continue;let ok=1;
+    for(let i=0;i<z;i++){const k=K(d,p+i);if(cO[g.cls+k]||tO[g.t+k]||t.off.includes(k)||(s.room&&rm[s.room]!=null&&(rO[s.room+k]||0)>=rm[s.room])){ok=0;break}}
+    if(!ok)continue;const sc=(gd[g.id+d]||0)*30+(td[g.t+d]||0)*(td[g.t+d]>=t.max?200:3)+Math.random()*10;if(sc<bs){bs=sc;bk=[d,p]}}
+   if(!bk)fail.push({c:g.cls,g:g.id,z});else for(let i=0;i<z;i++)put(g.cls,K(bk[0],bk[1]+i),g,0)}
+  const m=fail.reduce((s,f)=>s+f.z,0);if(!best||m<best.m)best={m,tt,fail};if(!m)break}
+ S.tt=best.tt;S.fail=best.fail;save();V.msg=best.m?`จัดไม่ลง ${best.m} คาบ — ดูรายงาน/ปรับเงื่อนไข`:'จัดตารางสำเร็จ ไม่มีข้อขัดแย้ง'}
+function conflicts(){
+ const o=[],tO={},rO={},td={};
+ for(const c in S.tt)for(const k in S.tt[c]){const g=byId('asg',S.tt[c][k].a);if(!g)continue;const t=byId('teachers',g.t),s=byId('subjects',g.sub),d=k.split('-')[0];if(!t||!s)continue;
+  (tO[g.t+k]=tO[g.t+k]||[]).push(c);td[g.t+d]=(td[g.t+d]||0)+1;if(t.off.includes(k))o.push(`${t.name} สอนในคาบที่ไม่ว่าง (${DN[d]} คาบ ${+k.split('-')[1]+1})`);
+  if(s.room)(rO[s.room+k]=rO[s.room+k]||[]).push(c)}
+ for(const x in tO)if(tO[x].length>1){const[t,k]=[x.split('-')[0]+'',x];o.push(`ครูสอนซ้อน: ${byId('teachers',x.slice(0,x.length-3))?.name||x} (${tO[x].map(c=>byId('classes',c).name).join(', ')})`)}
+ for(const x in rO){const r=S.rooms.find(r=>x.slice(0,-3)===r.id);if(r&&rO[x].length>r.n)o.push(`${r.name} เกินจำนวนห้อง (${rO[x].length}/${r.n})`)}
+ for(const x in td){const t=byId('teachers',x.slice(0,-1));if(t&&td[x]>t.max)o.push(`${t.name} สอนเกิน ${t.max} คาบ/วัน (${DN[+x.slice(-1)]})`)}
+ return[...new Set(o)]}
+// ---------- UI ----------
+const IC={dash:'📊',tt:'🗓️',teachers:'👩‍🏫',subjects:'📚',classes:'🏫',rooms:'🔬',asg:'🔗',rep:'📈',pdf:'📄',set:'⚙️'},TABS={dash:'ภาพรวม',tt:'ตารางสอน',teachers:'ครู',subjects:'วิชา',classes:'ห้องเรียน',rooms:'ห้องพิเศษ',asg:'ภาระสอน',rep:'รายงาน',pdf:'ส่งออก PDF',set:'ตั้งค่า/สำรอง'};
+function nav(){$('#nv').innerHTML=Object.entries(TABS).map(([k,v])=>`<button class="${V.tab==k?'on':''}" onclick="V.tab='${k}';R()"><i>${IC[k]||''}</i>${v}</button>`).join('')}
+const U=(a,i,k,v,n)=>{S[a][i][k]=n?+v:v;save()},DEL=(a,i)=>{if(!confirm('ลบรายการนี้?'))return;const id=S[a][i].id;S[a].splice(i,1);if(a=='teachers')S.asg=S.asg.filter(g=>g.t!=id);if(a=='subjects')S.asg=S.asg.filter(g=>g.sub!=id);if(a=='rooms')S.subjects.forEach(s=>{if(s.room==id)s.room=''});if(a=='classes'){S.asg=S.asg.filter(g=>g.cls!=id);delete S.tt[id]}clean();save();R()};
+function editor(a,cols,add,rows){const L=rows||S[a].map((x,i)=>i);
+ return`<div class="bar"><button class="p" onclick="S['${a}'].push(${add});save();R()">+ เพิ่ม</button><span class="mu">${S[a].length} รายการ</span></div><div class="sc"><table><tr>${cols.map(c=>`<th>${c.l}</th>`).join('')}<th></th></tr>${L.map(i=>{const x=S[a][i];return`<tr>${cols.map(c=>`<td>${c.ro?`<span class="mu">${x[c.k]}</span>`:c.o?`<select onchange="U('${a}',${i},'${c.k}',this.value,${!!c.n});R()">${(typeof c.o=='function'?c.o():c.o).map(o=>`<option value="${o[0]}" ${x[c.k]==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:c.b?`<input type="checkbox" ${x[c.k]?'checked':''} onchange="U('${a}',${i},'${c.k}',this.checked)">`:`<input type="${c.n?'number':'text'}" value="${x[c.k]??''}" onchange="U('${a}',${i},'${c.k}',this.value,${!!c.n})">`}</td>`).join('')}<td><button class="d" onclick="DEL('${a}',${i})">ลบ</button></td></tr>`}).join('')}</table></div>`}
+const opt=(a,f)=>()=>S[a].map(x=>[x.id,f(x)]);
+function grid(){
+ const{mode}=V;if(!V.sel||(mode=='cls'&&!byId('classes',V.sel))||(mode=='tch'&&!byId('teachers',V.sel))||(mode=='room'&&!byId('rooms',V.sel)))V.sel=(mode=='cls'?S.classes:mode=='tch'?S.teachers:S.rooms)[0]?.id;
+ const cf=new Set();let h='';const cell={};
+ for(const c in S.tt)for(const k in S.tt[c]){const g=byId('asg',S.tt[c][k].a);if(!g)continue;const s=byId('subjects',g.sub),t=byId('teachers',g.t),cl=byId('classes',c);if(!s)continue;
+  if(mode=='cls'&&c==V.sel)cell[k]=[{s,x:t?.name,lock:S.tt[c][k].lock}];
+  if(mode=='tch'&&g.t==V.sel)(cell[k]=cell[k]||[]).push({s,x:cl?.name});
+  if(mode=='room'&&s.room==V.sel)(cell[k]=cell[k]||[]).push({s,x:cl?.name})}
+ const tch=mode=='tch'?byId('teachers',V.sel):null,rm=mode=='room'?byId('rooms',V.sel):null;
+ h+=`<div class="sc"><table><tr><th>วัน</th>${P().map(p=>`${p==S.cfg.lunch?'<th class="lunch">พัก</th>':''}<th>คาบ ${p+1}<br><span class="mu">${tm(p)}</span></th>`).join('')}</tr>`;
+ Dy().forEach(d=>{h+=`<tr><th>${DN[d]}</th>`+P().map(p=>{const k=K(d,p),c=cell[k]||[],bad=(mode!='cls'&&c.length>(rm?rm.n:1))||(mode=='tch'&&tch.off.includes(k)&&c.length);
+  return`${p==S.cfg.lunch?'<td class="lunch">🍴</td>':''}<td class="cell ${bad?'bad':''} ${tch&&tch.off.includes(k)?'off':''}" style="${c[0]?'background:'+col(c[0].s.id):''}" onclick="CL('${k}')">${c.map(z=>`<b>${z.s.name}</b>${z.lock?' 🔒':''}<br><span class="mu">${z.x||''}</span>`).join('<hr style="margin:2px">')}</td>`}).join('')+'</tr>'});
+ return h+'</table></div>'+(mode=='tch'?'<p class="mu">คลิกช่องว่างเพื่อกำหนดคาบที่ครูไม่ว่าง (ลายทแยง)</p>':mode=='cls'?'<p class="mu">คลิกช่องเพื่อแก้ไข/ล็อกคาบ ล็อกแล้วระบบจัดอัตโนมัติจะไม่ย้าย</p>':'')}
+function CL(k){const m=V.mode;if(m=='tch'){const t=byId('teachers',V.sel),i=t.off.indexOf(k);i<0?t.off.push(k):t.off.splice(i,1);save();return R()}
+ if(m!='cls')return;const cur=(S.tt[V.sel]||{})[k],gs=S.asg.filter(g=>g.cls==V.sel);V.ak=k;
+ $('#dg').innerHTML=`<h3>${DN[+k[0]]} คาบ ${+k.split('-')[1]+1}</h3><p><select id="ga"><option value="">— ว่าง —</option>${gs.map(g=>`<option value="${g.id}" ${cur?.a==g.id?'selected':''}>${byId('subjects',g.sub)?.name} – ${byId('teachers',g.t)?.name}</option>`).join('')}</select></p><p><label><input type="checkbox" id="gl" ${cur?.lock?'checked':''}> ล็อกคาบนี้</label></p><button class="p" onclick="SV()">บันทึก</button> <button onclick="$('#dg').close()">ยกเลิก</button>`;$('#dg').showModal()}
+function SV(){const v=$('#ga').value;if(v){const g=byId('asg',v),t=byId('teachers',g.t),s=byId('subjects',g.sub),k=V.ak,w=[];let n=0;
+ if(t.off.includes(k))w.push('ครูไม่ว่างคาบนี้');
+ for(const c in S.tt){const x=S.tt[c][k];if(!x||c==V.sel)continue;const o=byId('asg',x.a);if(!o)continue;if(o.t==g.t)w.push('ครูสอนห้อง '+byId('classes',c)?.name+' อยู่แล้ว');if(s.room&&byId('subjects',o.sub)?.room==s.room)n++}
+ if(s.room&&n>=(byId('rooms',s.room)?.n||99))w.push('ห้องพิเศษเต็ม');
+ if(w.length&&!confirm('พบข้อขัดแย้ง: '+w.join(', ')+'\nบันทึกต่อไหม?'))return}
+S.tt[V.sel]=S.tt[V.sel]||{};if(v)S.tt[V.sel][V.ak]={a:v,lock:$('#gl').checked};else delete S.tt[V.sel][V.ak];save();$('#dg').close();R()}
+function csv(){let r=['ห้อง,วัน,คาบ,เวลา,วิชา,ครู,ห้องพิเศษ'];for(const c in S.tt)for(const k in S.tt[c]){const g=byId('asg',S.tt[c][k].a);if(!g)continue;const[d,p]=k.split('-').map(Number);r.push([byId('classes',c).name,DN[d],p+1,tm(p),byId('subjects',g.sub).name,byId('teachers',g.t).name,byId('subjects',g.sub).room].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','))}return r.join('\n')}
+const sg=()=>S.sig=S.sig||[{n:'',r:'ครูผู้จัดตาราง'},{n:'',r:'รองผู้อำนวยการฝ่ายวิชาการ'},{n:'',r:'ผู้อำนวยการ'}];
+function pg(m,id){const cell={};for(const c in S.tt)for(const k in S.tt[c]){const g=byId('asg',S.tt[c][k].a);if(!g)continue;const s=byId('subjects',g.sub);if(!s)continue;if(m=='cls'&&c==id)cell[k]=[s.name+'<br>'+(byId('teachers',g.t)?.name||'')];if(m=='tch'&&g.t==id)(cell[k]=cell[k]||[]).push(s.name+'<br>'+byId('classes',c).name)}
+ const e=byId(m=='cls'?'classes':'teachers',id),f=V.pdf;
+ return`<section style="page-break-after:always"><h2>${f.school}</h2><h3>ตารางสอน${m=='cls'?'ชั้น ':''}${e.name} · ${f.term}</h3><table><tr><th>วัน/คาบ</th>${P().map(p=>`${p==S.cfg.lunch?'<th>พัก</th>':''}<th>${p+1}<br>${tm(p)}</th>`).join('')}</tr>${Dy().map(d=>`<tr><th>${DN[d]}</th>${P().map(p=>`${p==S.cfg.lunch?'<td>พักกลางวัน</td>':''}<td>${(cell[K(d,p)]||[]).join('<hr>')}</td>`).join('')}</tr>`).join('')}</table><div class="sg">${sg().map(x=>`<span>ลงชื่อ..........................<br>(${x.n||'..........................'})<br>${x.r}</span>`).join('')}</div></section>`}
+function doPrint(){const f=V.pdf,L=f.mode=='cls'?S.classes:S.teachers,ids=f.sel=='all'?L.map(x=>x.id):[f.sel];if(!ids.length)return;$('#pr').innerHTML=ids.map(i=>pg(f.mode,i)).join('');document.documentElement.style.setProperty('--pfs',f.fs+'px');setTimeout(()=>print(),150)}
+async function doPDF(b){const f=V.pdf,L=f.mode=='cls'?S.classes:S.teachers,ids=f.sel=='all'?L.map(x=>x.id):[f.sel];if(!ids.length)return;
+ const pr=$('#pr');b.disabled=true;b.textContent='\u0e01\u0e33\u0e25\u0e31\u0e07\u0e2a\u0e23\u0e49\u0e32\u0e07...';
+ try{await document.fonts.load('20px THSarabunPSK');if(!document.fonts.check('20px THSarabunPSK'))throw Error('\u0e42\u0e2b\u0e25\u0e14\u0e1f\u0e2d\u0e19\u0e15\u0e4c THSarabun.ttf \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08 (\u0e27\u0e32\u0e07\u0e44\u0e1f\u0e25\u0e4c\u0e44\u0e27\u0e49\u0e42\u0e1f\u0e25\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e40\u0e14\u0e35\u0e22\u0e27\u0e01\u0e31\u0e1a\u0e2b\u0e19\u0e49\u0e32\u0e19\u0e35\u0e49)');
+  pr.innerHTML=ids.map(i=>pg(f.mode,i)).join('');pr.classList.add('cap');document.documentElement.style.setProperty('--pfs',f.fs+'px');await new Promise(r=>setTimeout(r,200));
+  const pdf=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),secs=pr.querySelectorAll('section');
+  for(let i=0;i<secs.length;i++){const cv=await html2canvas(secs[i],{scale:2,backgroundColor:'#fff'});if(i)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',0,0,297,210)}
+  pdf.save('timetable-'+f.mode+'.pdf')}catch(e){alert(e.message)}
+ pr.classList.remove('cap');R()}
+function R(){nav();const t=V.tab;let h='';
+ if(t=='dash'){const need=S.asg.reduce((s,g)=>s+(byId('subjects',g.sub)?.hrs||0),0),pl=Object.values(S.tt).reduce((s,c)=>s+Object.keys(c).length,0),cf=conflicts();
+  h=`<div class="g">${[['นักเรียน',S.classes.reduce((s,c)=>s+(+c.size||0),0)],['ห้องเรียน',S.classes.length],['ครู',S.teachers.length],['คาบที่ต้องจัด',need],['จัดแล้ว',pl],['ข้อขัดแย้ง',cf.length]].map(x=>`<div class="card"><div class="mu">${x[0]}</div><div class="k">${x[1]}</div></div>`).join('')}</div>
+  <div class="card"><div class="bar"><button class="p" onclick="gen();V.tab='tt';R()">⚡ จัดตารางอัตโนมัติ</button><span class="mu">ใช้ข้อมูลตัวอย่างได้เลย หรือแก้ไขในแท็บครู/วิชา/ภาระสอน</span></div><b>การตรวจสอบ</b>${cf.length?'<ul>'+cf.slice(0,15).map(x=>`<li class="er">${x}</li>`).join('')+'</ul>':'<p class="ok">✓ ไม่พบข้อขัดแย้ง</p>'}</div>`}
+ if(t=='tt'){h=`<div class="bar"><select onchange="V.mode=this.value;V.sel=null;R()">${[['cls','ตารางห้องเรียน'],['tch','ตารางครู'],['room','ห้องพิเศษ']].map(x=>`<option value="${x[0]}" ${V.mode==x[0]?'selected':''}>${x[1]}</option>`).join('')}</select><select onchange="V.sel=this.value;R()">${(V.mode=='cls'?S.classes:V.mode=='tch'?S.teachers:S.rooms).map(x=>`<option value="${x.id}" ${V.sel==x.id?'selected':''}>${x.name}</option>`).join('')}</select><button class="p" onclick="gen();R()">⚡ จัดอัตโนมัติ (คงคาบล็อก)</button><button onclick="if(confirm('ล้างคาบที่ไม่ได้ล็อก?')){for(const c in S.tt)for(const k in S.tt[c])if(!S.tt[c][k].lock)delete S.tt[c][k];save();R()}">ล้าง</button><button onclick="print()">🖨 พิมพ์</button></div>${V.msg?`<p class="${V.msg.includes('ไม่ลง')?'er':'ok'}">${V.msg}</p>`:''}<div class="card">${grid()}</div>`}
+ if(t=='teachers')h=editor('teachers',[{k:'name',l:'ชื่อ'},{k:'dept',l:'กลุ่มสาระ'},{k:'max',l:'สอนสูงสุด/วัน',n:1}],`{id:'t'+uid(),name:'ครูใหม่',dept:'',max:6,off:[]}`)+'<p class="mu">กำหนดคาบไม่ว่างได้ที่ ตารางสอน → ตารางครู</p>';
+ if(t=='subjects')h=editor('subjects',[{k:'id',l:'รหัส',ro:1},{k:'name',l:'ชื่อวิชา'},{k:'hrs',l:'คาบ/สัปดาห์',n:1},{k:'room',l:'ห้องพิเศษ',o:()=>[['','—'],...S.rooms.map(r=>[r.id,r.name])]},{k:'dbl',l:'คาบคู่',b:1}],`{id:'v'+uid(),name:'วิชาใหม่',hrs:1,room:'',dbl:false}`);
+ if(t=='classes')h=editor('classes',[{k:'name',l:'ห้อง'},{k:'lv',l:'ระดับ',n:1,o:[1,2,3,4,5,6].map(x=>[x,'ม.'+x])},{k:'size',l:'นักเรียน',n:1}],`{id:'c'+uid(),name:'ม.1/7',lv:1,size:33}`);
+ if(t=='rooms')h=editor('rooms',[{k:'id',l:'รหัส',ro:1},{k:'name',l:'ชื่อห้อง'},{k:'n',l:'จำนวนห้อง (ใช้พร้อมกันได้)',n:1}],`{id:'r'+uid(),name:'ห้องใหม่',n:1}`);
+ if(t=='asg'){V.ac=V.ac||S.classes[0]?.id;h=`<div class="bar"><select onchange="V.ac=this.value;R()">${S.classes.map(c=>`<option value="${c.id}" ${V.ac==c.id?'selected':''}>${c.name}</option>`).join('')}</select></div>`+editor('asg',[{k:'sub',l:'วิชา',o:opt('subjects',s=>s.name+` (${s.hrs})`)},{k:'t',l:'ครูผู้สอน',o:opt('teachers',t=>t.name)}],`{id:uid(),cls:'${V.ac}',sub:S.subjects[0]?.id,t:S.teachers[0]?.id}`,S.asg.map((g,i)=>g.cls==V.ac?i:-1).filter(i=>i>=0))}
+ if(t=='rep'){const sb=id=>byId('subjects',id),ld={};S.asg.forEach(g=>{ld[g.t]=(ld[g.t]||0)+(sb(g.sub)?.hrs||0)});const sc={};for(const c in S.tt)for(const k in S.tt[c]){const g=byId('asg',S.tt[c][k].a);if(g)sc[g.t]=(sc[g.t]||0)+1}
+  h=`<div class="card"><b>คาบที่จัดไม่ลง (${S.fail.length})</b>${S.fail.length?'<ul>'+S.fail.map(f=>`<li class="er">${byId('classes',f.c)?.name} – ${sb(byId('asg',f.g)?.sub)?.name} (${f.z} คาบ)</li>`).join('')+'</ul>':'<p class="ok">ไม่มี</p>'}</div><div class="card sc"><b>ภาระงานสอนรายครู</b><table><tr><th>ครู</th><th>กลุ่มสาระ</th><th>ภาระ (คาบ)</th><th>จัดแล้ว</th></tr>${S.teachers.map(t=>`<tr><td>${t.name}</td><td>${t.dept}</td><td class="${ld[t.id]>25?'er':''}">${ld[t.id]||0}</td><td>${sc[t.id]||0}</td></tr>`).join('')}</table></div>`}
+ if(t=='pdf'){const f=V.pdf,L=f.mode=='cls'?S.classes:S.teachers;h=`<div class="card"><b>ส่งออกตารางสอนเป็น PDF (A4 แนวนอน ฟอนต์ TH Sarabun PSK)</b><div class="bar" style="margin-top:8px"><select onchange="V.pdf.mode=this.value;V.pdf.sel='all';R()"><option value="cls" ${f.mode=='cls'?'selected':''}>ตารางห้องเรียน</option><option value="tch" ${f.mode=='tch'?'selected':''}>ตารางครู</option></select><select onchange="V.pdf.sel=this.value"><option value="all">ทั้งหมด (${L.length} หน้า)</option>${L.map(x=>`<option value="${x.id}" ${f.sel==x.id?'selected':''}>${x.name}</option>`).join('')}</select><label>ขนาดตัวอักษร <input type="number" style="width:70px" value="${f.fs}" onchange="V.pdf.fs=+this.value"></label></div><div class="bar"><input type="text" style="flex:1" value="${f.school}" onchange="V.pdf.school=this.value"><input type="text" style="flex:1" value="${f.term}" onchange="V.pdf.term=this.value"></div><p style="margin:8px 0 4px"><b>ผู้ลงนามท้ายเอกสาร</b> <span class="mu">(แก้ไขชื่อและตำแหน่งได้ ระบบจำค่าไว้)</span></p>${sg().map((x,i)=>`<div class="bar"><input type="text" style="flex:1" placeholder="ชื่อ-สกุล" value="${x.n}" onchange="sg()[${i}].n=this.value;save()"><input type="text" style="flex:1" placeholder="ตำแหน่ง" value="${x.r}" onchange="sg()[${i}].r=this.value;save()"><button class="d" onclick="sg().splice(${i},1);save();R()">ลบ</button></div>`).join('')}<div class="bar"><button onclick="sg().push({n:'',r:''});save();R()">+ เพิ่มผู้ลงนาม</button></div><button class="p" onclick="doPDF(this)">📄 สร้าง PDF</button> <button onclick="doPrint()">🖨 พิมพ์แทน</button><p class="mu">กดแล้วไฟล์ PDF จะดาวน์โหลดทันที ใช้ฟอนต์ THSarabun.ttf หน้าละ 1 ห้อง/ครู</p></div>`}
+ if(t=='set'){const c=S.cfg;h=`<div class="card"><b>โครงสร้างเวลา</b><div class="bar">${[['days','จำนวนวัน',1],['per','คาบ/วัน',1],['lunch','พักหลังคาบที่',1],['len','นาที/คาบ',1]].map(x=>`<label>${x[1]} <input type="number" style="width:70px" value="${c[x[0]]}" onchange="S.cfg.${x[0]}=Math.max(1,+this.value||1);fit();save();R()"></label>`).join('')}<label>เริ่ม <input type="text" style="width:70px" value="${c.start}" onchange="S.cfg.start=this.value;save();R()"></label></div></div>
+  <div class="card"><b>ส่งออก CSV (คัดลอกไปวางใน Excel)</b><textarea id="ex" rows="5" style="width:100%" readonly>${csv()}</textarea></div>
+  <div class="card"><b>สำรอง / นำเข้าข้อมูล (JSON)</b><textarea id="bk" rows="5" style="width:100%">${JSON.stringify(S)}</textarea><div class="bar"><button class="p" onclick="try{S=JSON.parse($('#bk').value);norm();save();R()}catch(e){alert('JSON ไม่ถูกต้อง')}">นำเข้า</button><button class="d" onclick="if(confirm('รีเซ็ตเป็นข้อมูลตัวอย่าง?')){S=demo();save();R()}">รีเซ็ตข้อมูลตัวอย่าง</button></div></div>`}
+ $('#m').innerHTML=h}
+R();
+</script></body></html>
