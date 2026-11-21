@@ -111,24 +111,73 @@ function CUS(){const add=[],del=[];S.subjects.forEach(s=>S.classes.forEach(c=>{c
  clean();save();R()}
 // ---------- scheduler ----------
 function gen(){
- const sb=Object.fromEntries(S.subjects.map(s=>[s.id,s])),tc=Object.fromEntries(S.teachers.map(t=>[t.id,t])),rm=Object.fromEntries(S.rooms.map(r=>[r.id,r.n])),np=S.cfg.per;
- const load={};S.asg.forEach(g=>load[g.t]=(load[g.t]||0)+hrsOf(sb[g.sub],g.cls));let best=null;
- const blk={},tblk={};S.classes.forEach(c=>{for(let d=0;d<S.cfg.days;d++)for(let p=0;p<np;p++)if(spAt(c.lv,d,p))blk[c.id+K(d,p)]=1});S.asg.forEach(g=>{const l=lvOf(g.cls);for(let d=0;d<S.cfg.days;d++)for(let p=0;p<np;p++)if(spAt(l,d,p,1))tblk[g.t+K(d,p)]=1});
- for(let a=0;a<80;a++){
-  const tt={},tO={},cO={},rO={},td={},gd={},need={};let fail=[];
-  S.asg.forEach(g=>need[g.id]=hrsOf(sb[g.sub],g.cls));
-  const put=(c,k,g,lock)=>{(tt[c]=tt[c]||{})[k]={a:g.id,lock};cO[c+k]=1;tO[g.t+k]=1;const r=sb[g.sub]?.room;if(r)rO[r+k]=(rO[r+k]||0)+1;const d=k.split('-')[0];td[g.t+d]=(td[g.t+d]||0)+1;gd[g.id+d]=(gd[g.id+d]||0)+1;need[g.id]--};
-  for(const c in S.tt)for(const k in S.tt[c]){const x=S.tt[c][k],g=S.asg.find(z=>z.id===x.a);if(g&&x.lock)put(c,k,g,1)}
-  const U=[];S.asg.forEach(g=>{let n=need[g.id];if(n>0&&sb[g.sub]&&!tc[g.t]){fail.push({c:g.cls,g:g.id,z:n});return}if(n<=0||!sb[g.sub]||!tc[g.t])return;if(sb[g.sub].dbl&&n>=2){U.push({g,z:2});n-=2}while(n-->0)U.push({g,z:1})});
-  U.forEach(u=>u.w=(rm[sb[u.g.sub].room]?-60:0)-(load[u.g.t]||0)-u.z*20+Math.random()*40);U.sort((x,y)=>x.w-y.w);
-  for(const{g,z}of U){const s=sb[g.sub],t=tc[g.t],gr=G(g.cls);let bs=1e9,bk=null;
-   for(let d=0;d<S.cfg.days;d++)for(let p=0;p+z<=np;p++){
-    if(brk(p,z))continue;let ok=1;
-    for(let i=0;i<z;i++){const k=K(d,p+i);if(PT[p+i].k[gr]!='c'||blk[g.cls+k]||tblk[g.t+k]||cO[g.cls+k]||tO[g.t+k]||t.off.includes(k)||(s.room&&rm[s.room]!=null&&(rO[s.room+k]||0)>=rm[s.room])){ok=0;break}}
-    if(!ok)continue;const sc=(gd[g.id+d]||0)*30+(td[g.t+d]||0)*(td[g.t+d]>=t.max?200:3)+Math.random()*10;if(sc<bs){bs=sc;bk=[d,p]}}
-   if(!bk)fail.push({c:g.cls,g:g.id,z});else for(let i=0;i<z;i++)put(g.cls,K(bk[0],bk[1]+i),g,0)}
-  const m=fail.reduce((s,f)=>s+f.z,0);if(!best||m<best.m)best={m,tt,fail};if(!m)break}
- S.tt=best.tt;S.fail=best.fail;save();V.msg=best.m?`จัดไม่ลง ${best.m} คาบ — ดูรายงาน/ปรับเงื่อนไข`:'จัดตารางสำเร็จ ไม่มีข้อขัดแย้ง'}
+ // ตัวจัดตารางแบบกำหนดแน่นอน (ไม่สุ่ม): MRV + ให้คะแนนความเหมาะสม + ย้ายคาบแก้ที่ชน (ejection chain)
+ const sb=Object.fromEntries(S.subjects.map(s=>[s.id,s])),tc=Object.fromEntries(S.teachers.map(t=>[t.id,t])),rm=Object.fromEntries(S.rooms.map(r=>[r.id,r.n])),np=S.cfg.per,nd=S.cfg.days,E=new Set();
+ const offS={};S.teachers.forEach(t=>offS[t.id]=new Set(t.off));
+ const blk={},tblk={},cO={},tO={},rU={},td={},cd={},gd={},load={},need={},units=[],fails=[],trail=[],byC={},byT={},byR={};let stuck=[],bud=0;
+ S.asg.forEach(g=>{const h=hrsOf(sb[g.sub],g.cls);load[g.t]=(load[g.t]||0)+h;need[g.id]=h});
+ S.classes.forEach(c=>{for(let d=0;d<nd;d++)for(let p=0;p<np;p++)if(spAt(c.lv,d,p))blk[c.id+K(d,p)]=1});
+ S.asg.forEach(g=>{const l=lvOf(g.cls);for(let d=0;d<nd;d++)for(let p=0;p<np;p++)if(spAt(l,d,p,1))tblk[g.t+K(d,p)]=1});
+ const mk=(g,z,lock)=>{const s=sb[g.sub],t=tc[g.t]||{id:g.t||'-',max:99},h=hrsOf(s,g.cls),u={g,z,c:g.cls,t,s,r:s?.room||'',gr:G(g.cls),hv:h>=3,lt:h<=1,lock:!!lock,pos:null,dc:0,i:units.length};units.push(u);return u};
+ const brk2=(p,z)=>{for(let i=1;i<z;i++)if(PT[p+i]?.b)return 1;return 0};
+ // ---- place / remove ----
+ const rp=(u,d,p)=>{for(let i=0;i<u.z;i++){const k=K(d,p+i);cO[u.c+k]=u;tO[u.t.id+k]=u;if(u.r)(rU[u.r+k]=rU[u.r+k]||[]).push(u)}td[u.t.id+d]=(td[u.t.id+d]||0)+u.z;cd[u.c+d]=(cd[u.c+d]||0)+u.z;gd[u.g.id+d]=(gd[u.g.id+d]||0)+u.z;u.pos=[d,p]};
+ const ru=u=>{const[d,p]=u.pos;for(let i=0;i<u.z;i++){const k=K(d,p+i);if(cO[u.c+k]===u)delete cO[u.c+k];if(tO[u.t.id+k]===u)delete tO[u.t.id+k];if(u.r&&rU[u.r+k])rU[u.r+k]=rU[u.r+k].filter(w=>w!==u)}td[u.t.id+d]-=u.z;cd[u.c+d]-=u.z;gd[u.g.id+d]-=u.z;u.pos=null};
+ const doPlace=(u,d,p)=>{rp(u,d,p);trail.push([u,null])},doRemove=u=>{const o=u.pos;ru(u);trail.push([u,o])},rollback=m=>{while(trail.length>m){const[u,o]=trail.pop();if(o===null)ru(u);else rp(u,o[0],o[1])}};
+ // ---- feasibility / cost ----
+ const fe=(u,d,p,rx)=>{const z=u.z,t=u.t,c=u.c;if(p+z>np||brk2(p,z))return false;if(!rx&&(td[t.id+d]||0)+z>(t.max||99))return false;const of=offS[t.id]||E;
+  for(let i=0;i<z;i++){const k=K(d,p+i);if(PT[p+i].k[u.gr]!='c'||blk[c+k]||tblk[t.id+k]||cO[c+k]||tO[t.id+k]||of.has(k))return false;if(u.r&&rm[u.r]!=null&&(rU[u.r+k]?.length||0)>=rm[u.r])return false}return true};
+ const cost=(u,d,p)=>{const t=u.t.id,z=u.z,id=u.g.id;let c=0;
+  const sd=gd[id+d]||0;if(sd)c+=60*sd;if(gd[id+(d-1)])c+=7;if(gd[id+(d+1)])c+=7;
+  c+=(cd[u.c+d]||0)*1.5;
+  c+=u.hv?p*2.2:u.lt?(np-1-p)*1.2:0;
+  for(let e=0;e<nd;e++)if(e!=d&&cO[u.c+K(e,p)]?.g===u.g)c+=2;
+  const has=td[t+d]||0;if(has){c+=(tO[t+K(d,p-1)]||tO[t+K(d,p+z)])?-3:4;c+=has*2}
+  let run=0;for(let q=p-1;q>=0&&tO[t+K(d,q)];q--)run++;for(let q=p+z;q<np&&tO[t+K(d,q)];q++)run++;if(run+z>=4)c+=8*(run+z-3);
+  if(u.r)c+=(rU[u.r+K(d,p)]?.length||0)*2;
+  if(z>1&&p>0&&!PT[p].b)c+=2;
+  return c+d*.013+p*.0007};
+ const best=(u,rx)=>{let b=null,bc=1e9;for(let d=0;d<nd;d++)for(let p=0;p<np;p++)if(fe(u,d,p,rx)){const c=cost(u,d,p);if(c<bc){bc=c;b=[d,p]}}return b};
+ const dcount=u=>{let n=0;for(let d=0;d<nd;d++)for(let p=0;p<np;p++)if(fe(u,d,p))n++;return n};
+ // ---- ejection chain ----
+ const blk2=(u,d,p)=>{const z=u.z;if(p+z>np||brk2(p,z))return null;const t=u.t.id,c=u.c,set=new Set(),of=offS[t]||E;
+  for(let i=0;i<z;i++){const k=K(d,p+i);if(PT[p+i].k[u.gr]!='c'||blk[c+k]||tblk[t+k]||of.has(k))return null;
+   const a=cO[c+k];if(a){if(a.lock)return null;set.add(a)}const b=tO[t+k];if(b){if(b.lock)return null;set.add(b)}
+   if(u.r&&rm[u.r]!=null){const L=rU[u.r+k]||[];if(L.length>=rm[u.r]){const y=L.find(w=>!w.lock&&!set.has(w));if(!y)return null;set.add(y)}}}
+  return set.size&&set.size<=3?[...set]:null};
+ const tryPlace=(u,depth,vis)=>{const b=best(u);if(b){doPlace(u,b[0],b[1]);return true}
+  if(depth<=0||--bud<0)return false;const cs=[];
+  for(let d=0;d<nd;d++)for(let p=0;p<np;p++){const bl=blk2(u,d,p);if(!bl||bl.some(x=>vis.has(x)))continue;cs.push({n:bl.length,c:cost(u,d,p),d,p,bl})}
+  cs.sort((a,b)=>a.n-b.n||a.c-b.c||a.d-b.d||a.p-b.p);
+  for(const x of cs.slice(0,10)){const m=trail.length;x.bl.forEach(doRemove);if(!fe(u,x.d,x.p)){rollback(m);continue}
+   doPlace(u,x.d,x.p);const v2=new Set(vis);v2.add(u);x.bl.forEach(y=>v2.add(y));
+   if(x.bl.every(y=>tryPlace(y,depth-1,v2)))return true;rollback(m)}
+  return false};
+ // ---- build units ----
+ for(const c in S.tt)for(const k in S.tt[c]){const x=S.tt[c][k];if(!x.lock)continue;const g=byId('asg',x.a);if(!g)continue;const[d,p]=k.split('-').map(Number);if(d>=nd||p>=np)continue;const u=mk(g,1,1);rp(u,d,p);need[g.id]--}
+ S.asg.forEach(g=>{const s=sb[g.sub];let n=need[g.id];if(!s||n<=0)return;if(!tc[g.t]){fails.push({c:g.cls,g:g.id,z:n});return}
+  if(s.dbl&&n>=2){mk(g,2);n-=2}while(n-->0)mk(g,1)});
+ units.forEach(u=>{(byC[u.c]=byC[u.c]||[]).push(u);(byT[u.t.id]=byT[u.t.id]||[]).push(u);if(u.r)(byR[u.r]=byR[u.r]||[]).push(u)});
+ // ---- greedy: เลือกคาบที่มีตัวเลือกน้อยที่สุดก่อน แล้วลงช่องที่คะแนนดีที่สุด ----
+ const live=new Set(units.filter(u=>!u.lock));live.forEach(u=>u.dc=dcount(u));
+ const cmp=(a,b)=>a.dc-b.dc||b.z-a.z||(b.r?1:0)-(a.r?1:0)||(load[b.t.id]||0)-(load[a.t.id]||0)||a.i-b.i;
+ while(live.size){let pk=null;for(const u of live)if(!pk||cmp(u,pk)<0)pk=u;live.delete(pk);
+  if(!pk.dc){stuck.push(pk);continue}const b=best(pk);if(!b){stuck.push(pk);continue}rp(pk,b[0],b[1]);
+  const aff=new Set([...(byC[pk.c]||[]),...(byT[pk.t.id]||[]),...(pk.r?byR[pk.r]||[]:[])]);aff.forEach(v=>{if(live.has(v))v.dc=dcount(v)})}
+ trail.length=0;
+ // ---- ซ่อม: ย้ายคาบที่วางแล้วเพื่อเปิดช่องให้คาบที่ยังจัดไม่ลง ----
+ for(let pass=0,pg=1;stuck.length&&pg&&pass<4;pass++){pg=0;const rest=[];for(const u of stuck){bud=4000;if(tryPlace(u,2,new Set()))pg=1;else rest.push(u)}stuck=rest;trail.length=0}
+ const fin=u=>{bud=3000;if(tryPlace(u,2,new Set()))return;const b=best(u,1);if(b){doPlace(u,b[0],b[1]);return}fails.push({c:u.c,g:u.g.id,z:u.z})};
+ stuck.forEach(u=>{if(u.z==2){u.z=1;const v=mk(u.g,1);fin(u);fin(v)}else fin(u)});
+ // ---- สรุปผล ----
+ const tt={};units.forEach(u=>{if(!u.pos)return;const[d,p]=u.pos;for(let i=0;i<u.z;i++)(tt[u.c]=tt[u.c]||{})[K(d,p+i)]={a:u.g.id,lock:u.lock?1:0}});
+ const m=fails.reduce((s,f)=>s+f.z,0);let rep=0,gaps=0;const tdp={};
+ for(const c in tt){const sd={};for(const k in tt[c]){const g=byId('asg',tt[c][k].a),d=k.split('-')[0],q=g.sub+'|'+d;sd[q]=(sd[q]||0)+1;(tdp[g.t+'|'+d]=tdp[g.t+'|'+d]||new Set()).add(+k.split('-')[1])}
+  for(const q in sd){const s=sb[q.split('|')[0]];if(sd[q]>1&&!(s?.dbl&&sd[q]==2))rep+=sd[q]-1}}
+ for(const q in tdp){const a=[...tdp[q]];gaps+=Math.max(...a)-Math.min(...a)+1-a.length}
+ S.tt=tt;S.fail=fails;save();
+ const q=` · วิชาเดียวกันซ้ำวันเดียวกัน ${rep} คาบ · ครูมีคาบว่างคั่น ${gaps} ช่อง`;
+ V.msg=m?`จัดไม่ลง ${m} คาบ — ดูรายงาน/ปรับเงื่อนไข`+q:'จัดตารางสำเร็จ ไม่มีข้อขัดแย้ง'+q}
 function conflicts(){
  const o=[],tO={},rO={},td={};
  for(const c in S.tt)for(const k in S.tt[c]){const g=byId('asg',S.tt[c][k].a);if(!g)continue;const t=byId('teachers',g.t),s=byId('subjects',g.sub),d=k.split('-')[0];if(!t||!s)continue;
