@@ -493,11 +493,32 @@ function checklist(){
   ['pdf','ส่งออก PDF / พิมพ์',false]];
  const nx=steps.findIndex(x=>!x[2]);
  return`<div class="card"><b>ขั้นตอนการใช้งาน</b> <span class="mu">${steps.filter(x=>x[2]).length}/${steps.length} ขั้น</span><div class="ck" style="margin-top:8px">${steps.map((x,i)=>`<button class="${i==nx?'p':''}" onclick="V.tab='${x[0]}';R()"><span class="n">${x[2]?'✅':i+1}</span>${x[1]}${i==nx?' <span style="margin-left:auto">ทำต่อ →</span>':''}</button>`).join('')}</div></div>`}
+const BA=window.BA={lv:1};
+const be=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+BA.set=(sid,t)=>{S.asg.forEach(g=>{if(g.sub==sid&&lvOf(g.cls)==BA.lv)g.t=t});save();R()};
+BA.one=(id,t)=>{const g=S.asg.find(x=>x.id==id);if(g){g.t=t;save();R()}};
+BA.cand=s=>S.teachers.filter(t=>t.dept&&(t.dept==s.name||(s.dept&&(t.dept.includes(s.dept)||s.dept.includes(t.dept)))));
+BA.spread=(sids,onlyEmpty)=>{const set=new Set(sids),load={};
+ S.asg.forEach(g=>{if(g.t&&!(set.has(g.sub)&&lvOf(g.cls)==BA.lv&&!onlyEmpty))load[g.t]=(load[g.t]||0)+hrsOf(byId('subjects',g.sub),g.cls)});
+ let miss=[];
+ sids.forEach(sid=>{const s=byId('subjects',sid),c=BA.cand(s);if(!c.length){miss.push(s.name);return}
+  S.asg.filter(g=>g.sub==sid&&lvOf(g.cls)==BA.lv&&(!onlyEmpty||!g.t)).forEach(g=>{const t=c.slice().sort((a,b)=>(load[a.id]||0)-(load[b.id]||0))[0];g.t=t.id;load[t.id]=(load[t.id]||0)+hrsOf(s,g.cls)})});
+ save();R();if(miss.length)alert('ไม่พบครูในกลุ่มสาระที่ตรงกับ: '+miss.join(', ')+'\nให้ตั้ง “กลุ่มสาระ” ของครูในแท็บครู หรือเลือกครูเองในตาราง')};
+BA.spreadOne=sid=>{if(confirm('กระจายครูในกลุ่มสาระที่ตรงกัน ให้ทุกห้องของระดับนี้ในวิชานี้ (แทนที่ที่กำหนดไว้เดิม) ?'))BA.spread([sid],false)};
+BA.fillEmpty=()=>{const ids=[...new Set(S.asg.filter(g=>!g.t&&lvOf(g.cls)==BA.lv).map(g=>g.sub))];if(!ids.length)return alert('ไม่มีภาระสอนที่ว่างในระดับนี้');BA.spread(ids,true)};
+function matrix(){const lv=BA.lv,cls=S.classes.filter(c=>c.lv==lv),tops=t=>S.teachers.map(x=>`<option value="${x.id}" ${t==x.id?'selected':''}>${be(x.name)}</option>`).join('');
+ const sids=S.subjects.filter(s=>S.asg.some(g=>g.sub==s.id&&lvOf(g.cls)==lv));
+ const emp=S.asg.filter(g=>!g.t&&lvOf(g.cls)==lv).length;
+ const rows=sids.map(s=>{const gs=S.asg.filter(g=>g.sub==s.id&&lvOf(g.cls)==lv),u=new Set(gs.map(g=>g.t)),one=u.size==1?[...u][0]:'__';
+  return`<tr><td>${be(s.name)}</td><td style="white-space:nowrap"><select onchange="if(this.value!='__')BA.set('${s.id}',this.value)"><option value="__" ${one=='__'?'selected':''}>${u.size>1?'หลายคน — เลือกเพื่อใช้ทุกห้อง':'— เลือกครู —'}</option><option value="" ${one===''?'selected':''}>— ไม่กำหนด —</option>${tops(one)}</select> <button title="กระจายครูในกลุ่มสาระ" onclick="BA.spreadOne('${s.id}')">⚖</button></td>${cls.map(c=>{const g=gs.find(x=>x.cls==c.id);return g?`<td><select style="${g.t?'':'border-color:var(--er)'}" onchange="BA.one('${g.id}',this.value)"><option value="">—</option>${tops(g.t)}</select></td>`:'<td class="mu">–</td>'}).join('')}</tr>`}).join('');
+ return`<div class="card"><b>กำหนดครูผู้สอนทั้งระดับ</b><p class="mu">เลือกครูในคอลัมน์ “ทั้งระดับ” เพื่อใช้กับทุกห้องของวิชานั้นในครั้งเดียว หรือกด ⚖ ให้ระบบกระจายครูในกลุ่มสาระเดียวกันตามภาระงานที่น้อยที่สุด แก้เป็นรายห้องในช่องด้านขวาได้ ช่องขอบแดง = ยังไม่มีครู</p><div class="bar"><label>ระดับ <select onchange="BA.lv=+this.value;R()">${[1,2,3,4,5,6].map(l=>`<option value="${l}" ${l==lv?'selected':''}>ม.${l}</option>`).join('')}</select></label><button class="p" onclick="BA.fillEmpty()">⚡ จัดครูให้ช่องที่ยังว่าง</button>${emp?`<span class="er">ว่าง ${emp} ช่อง</span>`:'<span class="ok">✓ ครบทุกช่อง</span>'}</div><div class="sc"><table><tr><th>วิชา</th><th>ทั้งระดับ</th>${cls.map(c=>`<th>${be(c.name)}</th>`).join('')}</tr>${rows||'<tr><td colspan="9" class="mu">ยังไม่มีภาระสอนในระดับนี้</td></tr>'}</table></div></div>`}
 const R1=R;
 R=function(){R1();const g=grp(V.tab);let h='';
+ if(V.tab=='asg'){const m=$('#m'),d=document.createElement('details');d.innerHTML='<summary class="mu" style="cursor:pointer;margin-bottom:8px">แก้ไขแบบรายห้อง / เพิ่ม-ลบวิชาในห้อง</summary>';while(m.firstChild)d.appendChild(m.firstChild);m.appendChild(d)}
  if(V.tab=='dash')h+=checklist();
+ if(V.tab=='asg')h+=matrix();
  if(g[3].length>1)h=`<div class="sub">${g[3].map(k=>`<button class="${V.tab==k?'on':''}" onclick="V.tab='${k}';R()">${TABS[k]}</button>`).join('')}</div>`+h;
- if(h)$('#m').insertAdjacentHTML('afterbegin',h)};
+ if(h)$('#m').insertAdjacentHTML('afterbegin',h);};
 R();
 })();
 
