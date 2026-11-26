@@ -463,4 +463,43 @@ const R0=R;R=function(){R0();ens();track();const f=X[V.tab];if(f)$('#m').innerHT
 ens();if(FIRST){AX.applyCur(1,true);ens()}H.p=parts();H.j=snap();R();
 })();
 
-</script></body></html>
+</script><script>
+/* ปรับโครงสร้างการใช้งาน: เมนูล่าง 5 หมวด + แถบเมนูย่อย + เช็กลิสต์ขั้นตอนในหน้าแรก
+   วางต่อท้าย <script> ตัวสุดท้าย (ก่อน </body>) ไม่กระทบข้อมูลเดิม */
+(()=>{
+const GR=[
+ ['home','🏠','หน้าแรก',['dash']],
+ ['data','🗂️','ข้อมูล',['set','classes','teachers','cur','subjects','asg','rooms','sp','adv']],
+ ['tt','🗓️','ตารางสอน',['tt','rep']],
+ ['doc','🖨️','เอกสาร',['pdf','fmt','xl','exam']],
+ ['more','⋯','เพิ่มเติม',['sub','ver']]];
+Object.assign(TABS,{dash:'ภาพรวม',set:'1 เวลาเรียน/สำรอง',classes:'2 ห้องเรียน',teachers:'3 ครู',cur:'4 หลักสูตร',subjects:'วิชา',asg:'5 ภาระสอน',rooms:'ห้องพิเศษ',sp:'คาบพิเศษ',adv:'ที่ปรึกษา',tt:'ตารางสอน',rep:'รายงาน',pdf:'ส่งออก PDF',fmt:'รูปแบบเอกสาร',xl:'Excel',exam:'ตารางสอบ',sub:'สอนแทน',ver:'เวอร์ชัน/ประวัติ'});
+const grp=t=>GR.find(g=>g[3].includes(t))||GR[0];
+window.GO=id=>{const g=GR.find(x=>x[0]==id);const l=GO.l[id];V.tab=l&&g[3].includes(l)?l:g[3][0];R()};GO.l={};
+nav=function(){const g=grp(V.tab);GO.l[g[0]]=V.tab;
+ $('#nv').innerHTML=GR.map(x=>`<button class="${x===g?'on':''}" onclick="GO('${x[0]}')"><i>${x[1]}</i>${x[2]}</button>`).join('')};
+const st=document.createElement('style');
+st.textContent='.sub{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}.sub button{white-space:nowrap;border-radius:999px;color:var(--mu)}.sub button.on{background:var(--ac2);color:var(--ac);border-color:var(--ac);font-weight:600}.ck{display:flex;flex-direction:column;gap:6px}.ck button{display:flex;gap:10px;align-items:center;text-align:left;width:100%}.ck .n{min-width:22px;text-align:center}';
+document.head.appendChild(st);
+function checklist(){
+ const placed=Object.values(S.tt).reduce((s,c)=>s+Object.keys(c).length,0);
+ const steps=[
+  ['set','ตรวจเวลาเรียน / พัก',S.cfg.tl.length>0],
+  ['classes','เพิ่มห้องเรียน',S.classes.length>0],
+  ['teachers','เพิ่มครู',S.teachers.length>0],
+  ['cur','ตั้งหลักสูตรและสร้างวิชา',S.subjects.length>0],
+  ['asg','กำหนดครูผู้สอนให้ครบทุกวิชา',S.asg.length>0&&S.asg.every(g=>g.t)],
+  ['tt','จัดตารางอัตโนมัติ',placed>0],
+  ['pdf','ส่งออก PDF / พิมพ์',false]];
+ const nx=steps.findIndex(x=>!x[2]);
+ return`<div class="card"><b>ขั้นตอนการใช้งาน</b> <span class="mu">${steps.filter(x=>x[2]).length}/${steps.length} ขั้น</span><div class="ck" style="margin-top:8px">${steps.map((x,i)=>`<button class="${i==nx?'p':''}" onclick="V.tab='${x[0]}';R()"><span class="n">${x[2]?'✅':i+1}</span>${x[1]}${i==nx?' <span style="margin-left:auto">ทำต่อ →</span>':''}</button>`).join('')}</div></div>`}
+const R1=R;
+R=function(){R1();const g=grp(V.tab);let h='';
+ if(V.tab=='dash')h+=checklist();
+ if(g[3].length>1)h=`<div class="sub">${g[3].map(k=>`<button class="${V.tab==k?'on':''}" onclick="V.tab='${k}';R()">${TABS[k]}</button>`).join('')}</div>`+h;
+ if(h)$('#m').insertAdjacentHTML('afterbegin',h)};
+R();
+})();
+
+</script>
+</body></html>
