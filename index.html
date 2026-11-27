@@ -1,4 +1,4 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ระบบจัดตารางสอน</title>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="author" content="นายอลงกรณ์ นนทรีย์"><title>ระบบจัดตารางสอน</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Prompt:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f5f6f8;--sf:#fff;--tx:#1b2330;--mu:#667085;--bd:#d9dde5;--ac:#2556d9;--er:#c62828;--ok:#1a7f4b;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -48,7 +48,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offs
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script></head><body>
-<header><h1>🏫 ระบบจัดตารางสอน โรงเรียนมัธยมศึกษา (ม.1–6)</h1></header><nav id="nv"></nav><main id="m"></main>
+<header><h1>🏫 ระบบจัดตารางสอน โรงเรียนมัธยมศึกษา (ม.1–6)</h1><div class="mu" style="font-size:12.5px;margin:-4px 0 4px">พัฒนาโดย นายอลงกรณ์ นนทรีย์</div></header><nav id="nv"></nav><main id="m"></main>
 <dialog id="dg"></dialog><div id="pr"></div>
 <script>
 const $=s=>document.querySelector(s),DN=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'],uid=()=>Math.random().toString(36).slice(2,8);
@@ -714,6 +714,75 @@ window.print=async function(){
 const R3=R;
 R=function(){R3();if(!document.querySelector('.pv'))return;
  document.fonts.load('18px THSarabunPSK').catch(()=>{}).then(()=>document.querySelectorAll('.pv').forEach(e=>FIT(e)))};
+})();
+
+</script>
+<script>
+(()=>{
+/* ตัวเลือก "ห้ามมีคาบว่างติดกัน" (ตารางห้องเรียน)
+   คาบว่าง = ช่องเรียนที่ไม่มีวิชา อยู่ระหว่างคาบแรกกับคาบสุดท้ายของวันนั้น (ว่างท้ายวัน/ก่อนเริ่มเรียนไม่นับ)
+   คาบพิเศษนับว่าไม่ว่าง ช่วงพักคั่นไม่นับว่าติดกัน */
+const NG=window.NG={};
+const nd=()=>S.cfg.days,np=()=>S.cfg.per;
+const slot=(c,d,p)=>{if(PT[p].k[G(c)]!='c')return -1;if(spAt(lvOf(c),d,p))return 1;return (S.tt[c]||{})[K(d,p)]?1:0};
+const vday=(c,d)=>{const a=[];let f=-1,l=-1;
+ for(let p=0;p<np();p++)if(slot(c,d,p)==1){if(f<0)f=p;l=p}
+ for(let p=f+1;f>=0&&p<l;p++)if(slot(c,d,p)==0&&slot(c,d,p+1)==0)a.push(p);
+ return a};
+const vc=c=>{let n=0;for(let d=0;d<nd();d++)n+=vday(c,d).length;return n};
+NG.count=()=>S.classes.reduce((s,c)=>s+vc(c.id),0);
+NG.list=()=>{const o=[];S.classes.forEach(c=>{for(let d=0;d<nd();d++){const a=vday(c.id,d);let i=0;
+ while(i<a.length){let j=i;while(j+1<a.length&&a[j+1]==a[j]+1)j++;o.push(`${c.name}: คาบว่างติดกัน ${DN[d]} คาบ ${a[i]+1}–${a[j]+2}`);i=j+1}}});return o};
+const build=()=>{const tO={},rU={},td={};
+ for(const c in S.tt)for(const k in S.tt[c]){const g=byId('asg',S.tt[c][k].a);if(!g)continue;const s=byId('subjects',g.sub),d=k.split('-')[0];
+  if(g.t){tO[g.t+'@'+k]=(tO[g.t+'@'+k]||0)+1;td[g.t+'|'+d]=(td[g.t+'|'+d]||0)+1}
+  if(s&&s.room)rU[s.room+'@'+k]=(rU[s.room+'@'+k]||0)+1}
+ return{tO,rU,td}};
+// ย้ายคาบเข้าช่องว่างของห้องเดียวกัน โดยไม่ชนครู/ห้องพิเศษ/คาบพิเศษ/เวลาที่ครูไม่ว่าง จนไม่เหลือคาบว่างติดกัน
+NG.run=()=>{
+ const st=build();let seed=20260101;const rnd=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+ let before=0,after=0;
+ S.classes.forEach(cl=>{const c=cl.id;let v=vc(c);before+=v;
+  if(v){const T=S.tt[c]||(S.tt[c]={});let plateau=0;
+   for(let it=0;it<400&&v>0;it++){
+    const les=[],emp=[];
+    for(let d=0;d<nd();d++)for(let p=0;p<np();p++){const k=K(d,p),x=T[k];
+     if(x){if(x.lock)continue;const L=T[K(d,p-1)],Rr=T[K(d,p+1)];if((L&&L.a==x.a)||(Rr&&Rr.a==x.a))continue;les.push([d,p,x])}
+     else if(slot(c,d,p)==0)emp.push([d,p])}
+    let best=null;const zero=[];
+    for(const[da,pa,x] of les){const g=byId('asg',x.a);if(!g)continue;const s=byId('subjects',g.sub),t=g.t?byId('teachers',g.t):null,ka=K(da,pa);
+     for(const[db,pb] of emp){const kb=K(db,pb);
+      if(da!=db&&Object.keys(T).some(k=>k.startsWith(db+'-')&&T[k].a==x.a))continue;
+      if(g.t){if(st.tO[g.t+'@'+kb])continue;if(t&&t.off.includes(kb))continue;if(spTch(g.t,db,pb))continue;if(da!=db&&t&&(st.td[g.t+'|'+db]||0)+1>(t.max||99))continue}
+      if(s&&s.room){const r=byId('rooms',s.room);if(r&&(st.rU[s.room+'@'+kb]||0)>=r.n)continue}
+      const b0=vday(c,da).length+(db!=da?vday(c,db).length:0);
+      delete T[ka];T[kb]=x;
+      const a0=vday(c,da).length+(db!=da?vday(c,db).length:0);
+      delete T[kb];T[ka]=x;
+      const dl=a0-b0,m={da,pa,db,pb,x,g,s,dl,ka,kb,sd:da==db?0:1};
+      if(dl<0){if(!best||dl<best.dl||(dl==best.dl&&m.sd<best.sd))best=m}else if(dl==0)zero.push(m)}}
+    let m=best;
+    if(!m){if(plateau>=60||!zero.length)break;m=zero[Math.floor(rnd()*zero.length)];plateau++}else plateau=0;
+    delete T[m.ka];T[m.kb]=m.x;
+    if(m.g.t){const t=m.g.t;st.tO[t+'@'+m.ka]--;st.tO[t+'@'+m.kb]=(st.tO[t+'@'+m.kb]||0)+1;st.td[t+'|'+m.da]--;st.td[t+'|'+m.db]=(st.td[t+'|'+m.db]||0)+1}
+    if(m.s&&m.s.room){const r=m.s.room;st.rU[r+'@'+m.ka]--;st.rU[r+'@'+m.kb]=(st.rU[r+'@'+m.kb]||0)+1}
+    v=vc(c)}}
+  after+=vc(c)});
+ save();return{before,after}};
+
+// ผูกกับตัวจัดตารางอัตโนมัติ
+const g0=gen;
+gen=function(){g0();if(S.cfg.noGap){const r=NG.run();V.msg+=` · คาบว่างติดกัน ${r.after} จุด`+(r.before>r.after?` (แก้จาก ${r.before})`:'')}};
+// แสดงใน "ข้อขัดแย้ง" ของหน้าภาพรวม
+const c0=conflicts;
+conflicts=function(){const o=c0();if(S.cfg.noGap)o.push(...NG.list());return o};
+
+NG.set=v=>{S.cfg.noGap=!!v;save();R()};
+NG.now=()=>{const r=NG.run();alert(`คาบว่างติดกัน ก่อนแก้ ${r.before} จุด · หลังแก้ ${r.after} จุด`+(r.after?'\nที่เหลือแก้ไม่ได้เพราะติดเงื่อนไขครู/ห้องพิเศษ/คาบล็อก ลองกด “จัดอัตโนมัติ” ใหม่ หรือย้ายคาบเอง':''));R()};
+const R5=R;
+R=function(){R5();if(V.tab!='set')return;const m=$('#m'),n=NG.count(),
+ h=`<div class="card"><b>เงื่อนไขการจัดตาราง</b><div class="bar" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${S.cfg.noGap?'checked':''} onchange="NG.set(this.checked)"> ห้ามมีคาบว่างติดกัน (ตารางห้องเรียน)</label><button onclick="NG.now()">แก้ตารางปัจจุบัน</button><span class="${n?'er':'ok'}">${n?'ตอนนี้มีคาบว่างติดกัน '+n+' จุด':'✓ ไม่มีคาบว่างติดกัน'}</span></div><p class="mu">คาบว่าง คือช่องเรียนที่ไม่มีวิชา แทรกอยู่ระหว่างคาบแรกกับคาบสุดท้ายของวันนั้น (ว่างช่วงท้ายวันหรือก่อนคาบแรกไม่นับ) เมื่อเปิดไว้ ตอนกด “จัดอัตโนมัติ” ระบบจะย้ายคาบไม่ให้มีคาบว่างตั้งแต่ 2 คาบขึ้นไปติดกัน โดยไม่ชนครู ห้องพิเศษ หรือคาบพิเศษ ถ้าแก้ไม่ได้จะแจ้งจำนวนที่เหลือ และแสดงในข้อขัดแย้งหน้าภาพรวม</p></div>`;
+ const sub=m.querySelector('.sub');sub?sub.insertAdjacentHTML('afterend',h):m.insertAdjacentHTML('afterbegin',h)};
 })();
 
 </script>
