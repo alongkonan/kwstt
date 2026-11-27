@@ -469,11 +469,11 @@ ens();if(FIRST){AX.applyCur(1,true);ens()}H.p=parts();H.j=snap();R();
 (()=>{
 const GR=[
  ['home','🏠','หน้าแรก',['dash']],
- ['data','🗂️','ข้อมูล',['set','classes','teachers','cur','subjects','asg','rooms','sp','adv']],
+ ['data','🗂️','ข้อมูล',['imp','set','classes','teachers','cur','subjects','asg','rooms','sp','adv']],
  ['tt','🗓️','ตารางสอน',['tt','rep']],
  ['doc','🖨️','เอกสาร',['pdf','fmt','xl','exam']],
  ['more','⋯','เพิ่มเติม',['sub','ver']]];
-Object.assign(TABS,{dash:'ภาพรวม',set:'1 เวลาเรียน/สำรอง',classes:'2 ห้องเรียน',teachers:'3 ครู',cur:'4 หลักสูตร',subjects:'วิชา',asg:'5 ภาระสอน',rooms:'ห้องพิเศษ',sp:'คาบพิเศษ',adv:'ที่ปรึกษา',tt:'ตารางสอน',rep:'รายงาน',pdf:'ส่งออก PDF',fmt:'รูปแบบเอกสาร',xl:'Excel',exam:'ตารางสอบ',sub:'สอนแทน',ver:'เวอร์ชัน/ประวัติ'});
+Object.assign(TABS,{imp:'📥 นำเข้าไฟล์โรงเรียน',dash:'ภาพรวม',set:'1 เวลาเรียน/สำรอง',classes:'2 ห้องเรียน',teachers:'3 ครู',cur:'4 หลักสูตร',subjects:'วิชา',asg:'5 ภาระสอน',rooms:'ห้องพิเศษ',sp:'คาบพิเศษ',adv:'ที่ปรึกษา',tt:'ตารางสอน',rep:'รายงาน',pdf:'ส่งออก PDF',fmt:'รูปแบบเอกสาร',xl:'Excel',exam:'ตารางสอบ',sub:'สอนแทน',ver:'เวอร์ชัน/ประวัติ'});
 const grp=t=>GR.find(g=>g[3].includes(t))||GR[0];
 window.GO=id=>{const g=GR.find(x=>x[0]==id);const l=GO.l[id];V.tab=l&&g[3].includes(l)?l:g[3][0];R()};GO.l={};
 nav=function(){const g=grp(V.tab);GO.l[g[0]]=V.tab;
@@ -492,7 +492,7 @@ function checklist(){
   ['tt','จัดตารางอัตโนมัติ',placed>0],
   ['pdf','ส่งออก PDF / พิมพ์',false]];
  const nx=steps.findIndex(x=>!x[2]);
- return`<div class="card"><b>ขั้นตอนการใช้งาน</b> <span class="mu">${steps.filter(x=>x[2]).length}/${steps.length} ขั้น</span><div class="ck" style="margin-top:8px">${steps.map((x,i)=>`<button class="${i==nx?'p':''}" onclick="V.tab='${x[0]}';R()"><span class="n">${x[2]?'✅':i+1}</span>${x[1]}${i==nx?' <span style="margin-left:auto">ทำต่อ →</span>':''}</button>`).join('')}</div></div>`}
+ return`<div class="card"><b>ขั้นตอนการใช้งาน</b> <span class="mu">${steps.filter(x=>x[2]).length}/${steps.length} ขั้น</span><div class="ck" style="margin-top:8px">${steps.map((x,i)=>`<button class="${i==nx?'p':''}" onclick="V.tab='${x[0]}';R()"><span class="n">${x[2]?'✅':i+1}</span>${x[1]}${i==nx?' <span style="margin-left:auto">ทำต่อ →</span>':''}</button>`).join('')}</div><div class="bar" style="margin-top:8px"><span class="mu">มีไฟล์ Excel ข้อมูลโรงเรียนอยู่แล้ว?</span><button onclick="V.tab='imp';R()">📥 นำเข้าจากไฟล์</button></div></div>`}
 const BA=window.BA={lv:1};
 const be=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 BA.set=(sid,t)=>{S.asg.forEach(g=>{if(g.sub==sid&&lvOf(g.cls)==BA.lv)g.t=t});save();R()};
@@ -512,9 +512,97 @@ function matrix(){const lv=BA.lv,cls=S.classes.filter(c=>c.lv==lv),tops=t=>S.tea
  const rows=sids.map(s=>{const gs=S.asg.filter(g=>g.sub==s.id&&lvOf(g.cls)==lv),u=new Set(gs.map(g=>g.t)),one=u.size==1?[...u][0]:'__';
   return`<tr><td>${be(s.name)}</td><td style="white-space:nowrap"><select onchange="if(this.value!='__')BA.set('${s.id}',this.value)"><option value="__" ${one=='__'?'selected':''}>${u.size>1?'หลายคน — เลือกเพื่อใช้ทุกห้อง':'— เลือกครู —'}</option><option value="" ${one===''?'selected':''}>— ไม่กำหนด —</option>${tops(one)}</select> <button title="กระจายครูในกลุ่มสาระ" onclick="BA.spreadOne('${s.id}')">⚖</button></td>${cls.map(c=>{const g=gs.find(x=>x.cls==c.id);return g?`<td><select style="${g.t?'':'border-color:var(--er)'}" onchange="BA.one('${g.id}',this.value)"><option value="">—</option>${tops(g.t)}</select></td>`:'<td class="mu">–</td>'}).join('')}</tr>`}).join('');
  return`<div class="card"><b>กำหนดครูผู้สอนทั้งระดับ</b><p class="mu">เลือกครูในคอลัมน์ “ทั้งระดับ” เพื่อใช้กับทุกห้องของวิชานั้นในครั้งเดียว หรือกด ⚖ ให้ระบบกระจายครูในกลุ่มสาระเดียวกันตามภาระงานที่น้อยที่สุด แก้เป็นรายห้องในช่องด้านขวาได้ ช่องขอบแดง = ยังไม่มีครู</p><div class="bar"><label>ระดับ <select onchange="BA.lv=+this.value;R()">${[1,2,3,4,5,6].map(l=>`<option value="${l}" ${l==lv?'selected':''}>ม.${l}</option>`).join('')}</select></label><button class="p" onclick="BA.fillEmpty()">⚡ จัดครูให้ช่องที่ยังว่าง</button>${emp?`<span class="er">ว่าง ${emp} ช่อง</span>`:'<span class="ok">✓ ครบทุกช่อง</span>'}</div><div class="sc"><table><tr><th>วิชา</th><th>ทั้งระดับ</th>${cls.map(c=>`<th>${be(c.name)}</th>`).join('')}</tr>${rows||'<tr><td colspan="9" class="mu">ยังไม่มีภาระสอนในระดับนี้</td></tr>'}</table></div></div>`}
+const IMP=window.IMP={rep:null};
+IMP.core=function(sheets,ctx){
+ const uid=ctx.uid,hasRoom=ctx.hasRoom,warn=[],review=[];
+ const nstr=v=>String(v??'').replace(/\s+/g,' ').trim();
+ const TT=/^(ว่าที่\s*ร้อยตรี|ว่าที่\s*รอยตรี|ว่าที่\s*ร\.ต\.|นางสาว|นาง|นาย|ครู)\s*/;
+ const FXR=/หน้าที่พลเมือง|การป้องกันการทุจริต|เสริมทักษะการอ่าน/,CRM=/วิทยาการคำนวณ|คอมพิวเตอร์|โปรแกรม|การออกแบบและเทคโนโลยี|ปัญญาประดิษฐ์/;
+ const DNM={'ท':'ภาษาไทย','ค':'คณิตศาสตร์','ว':'วิทยาศาสตร์และเทคโนโลยี','ส':'สังคมศึกษา ศาสนา และวัฒนธรรม','พ':'สุขศึกษาและพลศึกษา','ศ':'ศิลปะ','ง':'การงานอาชีพ','อ':'ภาษาต่างประเทศ','จ':'ภาษาต่างประเทศ'};
+ const lev=(a,b)=>{const d=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]==b[j-1]?0:1));p=t}}return d[b.length]};
+ const pSpec=s=>{s=nstr(s);let spec=null,m=s.match(/[\(（]([^)）]*\d\s*\/\s*\d[^)）]*)[\)）]/);
+  if(m){spec=m[1];s=s.replace(m[0],' ')}else{m=s.match(/(?:ม\.?\s*)?\d\s*\/\s*\d[\d\s,\/\-ม.]*$/);if(m){spec=m[0];s=s.slice(0,m.index)}}
+  s=nstr(s).replace(TT,'').trim();const w=s.split(' ');return{first:w[0]||'',sur:w.slice(1).join(''),spec}};
+ const pRooms=spec=>{if(!spec)return null;const t=spec.replace(/ม\./g,'').replace(/\d\s*\//g,'').replace(/\s/g,''),out=new Set();
+  t.split(',').forEach(k=>{const p=k.split('-').filter(x=>/^\d$/.test(x)).map(Number);if(p.length==1)out.add(p[0]);else if(p.length==2)for(let i=p[0];i<=p[1];i++)out.add(i);else p.forEach(x=>out.add(x))});return out.size?[...out]:null};
+ const planOf=t=>/จีน/.test(t)&&/อังกฤษ/.test(t)?'cn':/คณิต/.test(t)&&/อังกฤษ/.test(t)?'me':/ไทย/.test(t)&&/สังคม/.test(t)?'ts':'sm';
+ const rows=[];
+ sheets.forEach(sh=>{const aoa=sh.aoa,title=nstr(aoa[0]&&aoa[0][0]),m=title.match(/ปีที่\s*(\d)\s*\/\s*(\d)(?:\s*-\s*(?:\d\s*\/\s*)?(\d))?/);
+  if(!m){warn.push(`ข้ามชีต “${sh.name}” (${sh.file}): อ่านชั้น/ห้องจากหัวตารางไม่ได้`);return}
+  const lv=+m[1],a=+m[2],b=+(m[3]||m[2]),plan=lv<=3?null:planOf(title),cls=[];
+  for(let r=a;r<=b;r++)cls.push({lv,room:r,plan:lv<=3?(r==1?'sm':'gen'):plan});
+  const tc=[];(aoa[2]||[]).forEach((v,i)=>{if(/^คนที่/.test(nstr(v)))tc.push(i)});if(!tc.length)tc.push(5,6);
+  const h2=(aoa[1]||[]).map(nstr),ti=h2.findIndex(x=>/รวมคาบ/.test(x)),ni=h2.findIndex(x=>/หมายเหตุ/.test(x));
+  let last=null;
+  for(let i=3;i<aoa.length;i++){const r=aoa[i]||[],A=nstr(r[0]),B=nstr(r[1]),C=nstr(r[2]),ts=tc.map(c=>nstr(r[c])).filter(Boolean);
+   if(!A&&!B&&!C&&ts.length&&last){last.teachers.push(...ts);continue}
+   if(B=='-'||C=='-'||(!B&&!C))continue;
+   const sp=/\d\s*\//.test(A)?pRooms(A):null,cl=cls.filter(c=>!sp||sp.includes(c.room));
+   const row={file:sh.file,sheet:sh.name,lv,cls:cl,A,sp,code:B,name:C,cr:parseFloat(r[3]),tot:ti>=0?parseFloat(r[ti]):NaN,teachers:ts,note:ni>=0?nstr(r[ni]):''};
+   if(!B){if(!ts.length){last=null;continue}row.act=true}
+   if(!cl.length){warn.push(`ข้าม ${C} (${sh.name}): ห้องที่ระบุไม่ตรงกับห้องในชีต`);last=null;continue}
+   rows.push(row);last=row}});
+ // ---- teachers ----
+ const cnt=new Map(),surs=new Map();
+ rows.forEach(r=>{r.people=r.teachers.flatMap(t=>t.split(/\s*,\s*(?=ครู|นาย|นาง|ว่าที่)/)).map(pSpec).filter(p=>p.first);
+  r.people.forEach(p=>{cnt.set(p.first,(cnt.get(p.first)||0)+1);if(p.sur){const m=surs.get(p.first)||new Map();m.set(p.sur,(m.get(p.sur)||0)+1);surs.set(p.first,m)}})});
+ const names=[...cnt.keys()].sort((x,y)=>cnt.get(y)-cnt.get(x)||x.localeCompare(y,'th')),alias={},canon=[];
+ names.forEach(n=>{const sn=surs.get(n),c=canon.find(c=>{const sc=surs.get(c);return sn&&sc&&lev(n,c)<=2&&[...sn.keys()].some(s=>sc.has(s))});if(c){alias[n]=c;warn.push(`รวมชื่อที่สะกดต่างกัน: “${n}” → “${c}” (นามสกุลเดียวกัน)`)}else{alias[n]=n;canon.push(n)}});
+ const tid={},teachers=[];
+ canon.sort((x,y)=>x.localeCompare(y,'th')).forEach((n,i)=>{const sm=new Map();names.filter(k=>alias[k]==n).forEach(k=>(surs.get(k)||new Map()).forEach((v,s)=>sm.set(s,(sm.get(s)||0)+v)));
+  const ss=[...sm.entries()].sort((a,b)=>b[1]-a[1]);if(ss.length>1)warn.push(`ครู “${n}” พบนามสกุล ${ss.map(x=>x[0]).join(' / ')} (รวมเป็นคนเดียว)`);
+  const t={id:'t'+(i+1),name:'ครู'+n+(ss.length?' '+ss[0][0]:''),dept:'',max:6,off:[]};teachers.push(t);tid[n]=t.id});
+ const T=f=>tid[alias[f]];
+ // ---- classes / subjects / assignments ----
+ const cid=c=>'c'+c.lv+c.room+(c.lv>=4&&c.room==4?(c.plan=='cn'?'a':c.plan=='me'?'b':''):''),
+  cname=c=>`ม.${c.lv}/${c.room}`+(c.lv>=4&&c.room==4?(c.plan=='cn'?' (จีน-อังกฤษ)':c.plan=='me'?' (คณิต-อังกฤษ)':''):'');
+ const classes=new Map(),subs=new Map(),byCode=new Map(),asg=new Map(),tcount={};
+ const sim=(x,y)=>{const f=s=>s.replace(/[\s()（）0-9๐-๙]/g,'');x=f(x);y=f(y);return x.includes(y.slice(0,6))||y.includes(x.slice(0,6))};
+ rows.forEach(r=>{
+  const code=r.act?`ก${r.lv}-${r.name.replace(/^กิจกรรม/,'').replace(/\s/g,'')}`:r.code;
+  const per=Math.round((isNaN(r.cr)?0:r.cr)*2);
+  let id=code,ex=byCode.get(code);
+  if(ex&&!ex.some(s=>sim(s.name,r.name))){id=code+'-'+(ex.length+1);warn.push(`รหัสวิชา ${code} ซ้ำกับวิชาอื่น (“${ex[0].name}” และ “${r.name}”) แยกเป็นคนละวิชา — ควรแก้รหัสในไฟล์ต้นฉบับ`)}
+  else if(ex)id=ex.find(s=>sim(s.name,r.name)).id;
+  let s=subs.get(id);
+  if(!s){const hrs=r.act?(r.sp&&r.tot?Math.round(r.tot/r.sp.length):r.tot&&r.cls.length?Math.max(1,Math.round(r.tot/r.cls.length)):1):(per||1);
+   s={id,code:r.act?'':r.code,name:r.name,cr:r.act?'':r.cr,hrs,room:CRM.test(r.name)&&hasRoom('com')?'com':/พลศึกษา/.test(r.name)&&hasRoom('gym')?'gym':'',dbl:/คาบคู่/.test(r.note),fx:FXR.test(r.name),dept:DNM[(r.code||'')[0]]||''};
+   subs.set(id,s);byCode.set(code,[...(byCode.get(code)||[]),s])}
+  else if(!r.act&&per&&s.hrs!=per)warn.push(`${s.code} ${s.name}: หน่วยกิตต่างกันระหว่างชีต (${s.cr} / ${r.cr}) ใช้ค่าแรก`);
+  if(!r.act){if(!/^([ก-ฮ]{1,2}|I)\d{5}$/.test(r.code))warn.push(`รหัสวิชา “${r.code}” (${r.name}) ผิดรูปแบบ`);
+   if(!isNaN(r.tot)&&per&&!/^I/.test(r.code)){const n=r.sp?r.sp.length:0;if((n&&r.tot!=per*n)||(!n&&r.tot%per))warn.push(`${r.code} ${r.name} (${r.sheet}): “รวมคาบ” ${r.tot} ไม่สอดคล้องกับหน่วยกิต ${r.cr} (${per} คาบ/ห้อง)${n?' × '+n+' ห้อง':''}`)}}
+  // teacher per class
+  const pick=new Map(),free=[];
+  r.people.forEach(p=>{const rs=pRooms(p.spec);if(!rs){free.push(p);return}r.cls.forEach(c=>{if(rs.includes(c.room)&&!pick.has(cid(c)+c.plan)){pick.set(cid(c)+c.plan,p)}})});
+  const rest=r.cls.filter(c=>!pick.has(cid(c)+c.plan));
+  if(free.length==1)rest.forEach(c=>pick.set(cid(c)+c.plan,free[0]));
+  else if(free.length>1){rest.forEach((c,i)=>pick.set(cid(c)+c.plan,free[i%free.length]));review.push(`${r.name} (${r.sheet}): มีครู ${free.length} คนแต่ไม่ระบุห้อง — กระจายตามลำดับให้ ${rest.length} ห้อง ควรตรวจ`)}
+  r.cls.forEach(c=>{classes.set(cid(c),{id:cid(c),name:cname(c),lv:c.lv,size:33,plan:c.plan,room:c.room});
+   const p=pick.get(cid(c)+c.plan),t=p?T(p.first):'',k=cid(c)+'|'+id,old=asg.get(k);
+   if(old){if(t&&old.t&&t!=old.t)warn.push(`${cname(c)} ${s.name}: ครูไม่ตรงกันระหว่างชีต ใช้ค่าแรก`);if(!old.t&&t)old.t=t;return}
+   if(!t&&!r.act)review.push(`${cname(c)} ${s.name}: ไม่ระบุครู`);
+   asg.set(k,{id:uid(),cls:cid(c),sub:id,t});if(t)tcount[t]=tcount[t]||{};if(t&&!r.act&&r.code)tcount[t][r.code[0]]=(tcount[t][r.code[0]]||0)+1})});
+ teachers.forEach(t=>{const c=Object.entries(tcount[t.id]||{}).filter(([k])=>DNM[k]).sort((a,b)=>b[1]-a[1])[0];t.dept=c?DNM[c[0]]:''});
+ const cl=[...classes.values()].sort((a,b)=>a.lv-b.lv||a.room-b.room||String(a.plan).localeCompare(b.plan));
+ cl.forEach(c=>delete c.room);
+ return{classes:cl,subjects:[...subs.values()],teachers,asg:[...asg.values()],warn:[...new Set(warn)],review:[...new Set(review)]}};
+IMP.loadX=()=>window.XLSX?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=ok;s.onerror=()=>no(Error('โหลดไลบรารี Excel ไม่ได้ (ตรวจสอบอินเทอร์เน็ต)'));document.head.appendChild(s)});
+IMP.run=async files=>{if(!files.length)return;try{await IMP.loadX();const sheets=[];
+ for(const f of files){const wb=XLSX.read(await f.arrayBuffer());wb.SheetNames.forEach(n=>sheets.push({file:f.name,name:n,aoa:XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:''})}))}
+ IMP.rep=IMP.core(sheets,{uid,hasRoom:id=>S.rooms.some(r=>r.id==id)});IMP.nf=files.length;R()}catch(e){alert(e.message)}};
+IMP.apply=()=>{const r=IMP.rep;if(!r)return;
+ if(!confirm(`นำเข้า: ห้องเรียน ${r.classes.length} · ครู ${r.teachers.length} · วิชา ${r.subjects.length} · ภาระสอน ${r.asg.length}\nข้อมูลครู ห้องเรียน วิชา ภาระสอน และตารางที่จัดไว้จะถูกแทนที่ (ห้องพิเศษ คาบพิเศษ และการตั้งค่าเวลาคงเดิม) ระบบบันทึกสถานะเดิมเป็นเวอร์ชันให้ ดำเนินการต่อไหม?`))return;
+ const o={...S};delete o.vers;S.vers=S.vers||[];S.vers.push({id:uid(),name:'ก่อนนำเข้าข้อมูลโรงเรียน',t:Date.now(),j:JSON.stringify(o)});
+ S.teachers=r.teachers;S.classes=r.classes;S.subjects=r.subjects;S.asg=r.asg;S.tt={};S.fail=[];clean();save();IMP.rep=null;V.tab='asg';R()};
+function impUI(){const r=IMP.rep,li=(a,c)=>a.length?`<ul>${a.slice(0,40).map(x=>`<li class="${c}">${be(x)}</li>`).join('')}</ul>${a.length>40?`<p class="mu">…และอีก ${a.length-40} รายการ</p>`:''}`:'<p class="ok">ไม่มี</p>';
+ let h=`<div class="card"><b>นำเข้าข้อมูลจากไฟล์ตารางสอนของโรงเรียน (.xlsx)</b><p class="mu">เลือกไฟล์ “รวมข้อมูลการจัดตารางสอน” ของ ม.1–ม.6 พร้อมกันได้หลายไฟล์ ระบบอ่านห้องเรียน แผนการเรียน ครู วิชา หน่วยกิต และการแบ่งห้องของครูแต่ละคน (เช่น ม.1/1-3-5, 2/2-2/4, (2/3,2/5)) แล้วให้ตรวจก่อนนำเข้าจริง ต้องต่ออินเทอร์เน็ตเพื่อโหลดไลบรารี Excel ครั้งแรก</p><div class="bar"><input type="file" multiple accept=".xlsx,.xls" onchange="IMP.run([...this.files]);this.value=''"></div></div>`;
+ if(r){const nt=r.asg.filter(a=>!a.t&&!byId('subjects',a.sub)).length;h+=`<div class="g">${[['ไฟล์',IMP.nf],['ห้องเรียน',r.classes.length],['ครู',r.teachers.length],['วิชา',r.subjects.length],['ภาระสอน',r.asg.length],['ยังไม่มีครู',r.asg.filter(a=>!a.t).length]].map(x=>`<div class="card"><div class="mu">${x[0]}</div><div class="k">${x[1]}</div></div>`).join('')}</div>
+ <div class="card"><div class="bar"><button class="p" onclick="IMP.apply()">⬇ นำเข้าเข้าระบบ</button><span class="mu">ย้อนกลับได้ที่ปุ่มย้อนกลับ หรือกู้คืนเวอร์ชัน “ก่อนนำเข้าข้อมูลโรงเรียน”</span></div><b>ควรตรวจ (${r.review.length})</b>${li(r.review,'er')}<b>ข้อสังเกตจากข้อมูลต้นฉบับ (${r.warn.length})</b>${li(r.warn,'mu')}</div>`}
+ return h}
 const R1=R;
 R=function(){R1();const g=grp(V.tab);let h='';
  if(V.tab=='asg'){const m=$('#m'),d=document.createElement('details');d.innerHTML='<summary class="mu" style="cursor:pointer;margin-bottom:8px">แก้ไขแบบรายห้อง / เพิ่ม-ลบวิชาในห้อง</summary>';while(m.firstChild)d.appendChild(m.firstChild);m.appendChild(d)}
+ if(V.tab=='imp')$('#m').innerHTML=impUI();
  if(V.tab=='dash')h+=checklist();
  if(V.tab=='asg')h+=matrix();
  if(g[3].length>1)h=`<div class="sub">${g[3].map(k=>`<button class="${V.tab==k?'on':''}" onclick="V.tab='${k}';R()">${TABS[k]}</button>`).join('')}</div>`+h;
