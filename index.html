@@ -454,7 +454,7 @@ X.cur=()=>{const C=crs(),g=AX.cp.g;let pi=C.plans.findIndex(p=>p.g==g&&p.k==AX.c
  <div class="bar"><label>ชั้น <select onchange="AX.cp.g=+this.value;R()">${[1,2,3,4,5,6].map(x=>`<option value="${x}" ${g==x?'selected':''}>ม.${x}</option>`).join('')}</select></label><label>แผนการเรียน <select onchange="AX.cp.k=this.value;R()">${C.plans.filter(x=>x.g==g).map(x=>`<option value="${x.k}" ${p.k==x.k?'selected':''}>${PNM[x.k]}</option>`).join('')}</select></label><button onclick="AX.cReset()">คืนค่าตามเอกสาร</button></div></div>
  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">${semTbl(1)}${semTbl(2)}</div>
  <div class="card"><b>ใช้หลักสูตรกับระบบ</b><div class="bar" style="margin-top:8px"><label>ภาคเรียน <select onchange="AX.cs=+this.value;R()"><option value="1" ${sem==1?'selected':''}>ภาคเรียนที่ 1</option><option value="2" ${sem==2?'selected':''}>ภาคเรียนที่ 2</option></select></label><button class="p" onclick="AX.applyCur(AX.cs)">สร้างวิชาและภาระสอนตามหลักสูตร</button><button onclick="AX.cClasses()">สร้างห้องเรียนตามโครงสร้างโรงเรียน</button><span class="mu">${C.t?`ใช้ล่าสุด: ภาคเรียนที่ ${C.sem}`:''}</span></div>
- <p class="mu">วิชาที่ตั้ง “ตรึงเวลา” (หน้าที่พลเมือง การป้องกันการทุจริต เสริมทักษะการอ่าน) ระบบไม่จัดอัตโนมัติ ให้ตรึงเวลาในแท็บคาบพิเศษ ส่วนกิจกรรมพัฒนาผู้เรียนก็ใช้คาบพิเศษเช่นกัน เมื่อกดใช้หลักสูตรซ้ำ ครูที่กำหนดไว้แล้วจะคงเดิม</p>
+ <p class="mu">วิชาที่ตั้ง “ตรึงเวลา” (หน้าที่พลเมือง การป้องกันการทุจริต เสริมทักษะการอ่าน) ระบบไม่จัดอัตโนมัติ ให้กำหนดวัน/คาบที่แท็บวิชา (ปุ่ม “ตั้งเวลา” ในคอลัมน์ตรึงเวลา) ส่วนกิจกรรมพัฒนาผู้เรียนใช้คาบพิเศษ เมื่อกดใช้หลักสูตรซ้ำ ครูที่กำหนดไว้แล้วจะคงเดิม</p>
  <div class="sc"><table><tr><th>ห้อง</th><th>แผนการเรียน (แก้แล้วกดสร้างวิชาและภาระสอนใหม่)</th></tr>${S.classes.map((c,i)=>`<tr><td>${esc(c.name)}</td><td><select onchange="AX.cpl(${i},this.value)">${C.plans.filter(x=>x.g==c.lv).map(x=>`<option value="${x.k}" ${c.plan==x.k?'selected':''}>${PNM[x.k]}</option>`).join('')}</select></td></tr>`).join('')}</table></div></div>
  <div class="card sc"><b>ตรวจจำนวนคาบเทียบช่องที่มี (ภาคเรียนที่ ${sem})</b><table><tr><th>ชั้น</th><th>แผน</th><th>วิชา</th><th>คาบที่ต้องจัด/สัปดาห์</th><th>ตรึงเวลา</th><th>ช่องที่มี</th><th></th></tr>${rows}</table></div>`};
 // ---------- เชื่อมเข้าระบบเดิม ----------
@@ -788,6 +788,69 @@ const R5=R;
 R=function(){R5();if(V.tab!='set')return;const m=$('#m'),n=NG.count(),
  h=`<div class="card"><b>เงื่อนไขการจัดตาราง</b><div class="bar" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${S.cfg.noGap?'checked':''} onchange="NG.set(this.checked)"> เปิดใช้ ห้ามมีคาบว่างติดกัน (ตารางห้องเรียน)</label><label>ห้ามติดกัน <select onchange="NG.setN(this.value)">${[1,2,3,4,5,6].map(x=>`<option value="${x}" ${MN()==x?'selected':''}>${x}</option>`).join('')}</select> คาบขึ้นไป</label><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${S.cfg.noGapEdge?'checked':''} onchange="NG.setE(this.checked)"> นับคาบว่างต้น/ท้ายวันด้วย</label><button onclick="NG.now()">แก้ตารางปัจจุบัน</button><span class="${n?'er':'ok'}">${n?'ตอนนี้มีคาบว่างติดกัน '+MN()+' คาบขึ้นไป '+n+' จุด':'✓ ไม่มีคาบว่างติดกัน'}</span></div><p class="mu">คาบว่าง คือช่องเรียนที่ไม่มีวิชา แทรกอยู่ระหว่างคาบแรกกับคาบสุดท้ายของวันนั้น (ปกติว่างช่วงท้ายวันหรือก่อนคาบแรกไม่นับ แต่ถ้ามีคาบกิจกรรมที่ตั้งชื่อไว้ เช่น โฮมรูมเช้า/เย็น จะถือว่านักเรียนอยู่โรงเรียน ช่องว่างที่คั่นกับกิจกรรมนั้นจึงนับด้วย และเปิด “นับคาบว่างต้น/ท้ายวันด้วย” เพื่อนับทุกช่องว่างของวัน) เมื่อเปิดไว้ ตอนกด “จัดอัตโนมัติ” ระบบจะย้ายคาบไม่ให้มีคาบว่างตามจำนวนคาบที่เลือก (เช่น เลือก 1 = ห้ามมีคาบว่างคั่นเลย / เลือก 2 = ห้ามว่างติดกัน 2 คาบขึ้นไป ว่างคาบเดียวได้ / เลือก 3 = ว่างติดกันได้ไม่เกิน 2 คาบ) โดยไม่ชนครู ห้องพิเศษ หรือคาบพิเศษ ถ้าแก้ไม่ได้จะแจ้งจำนวนที่เหลือ และแสดงในข้อขัดแย้งหน้าภาพรวม</p></div>`;
  const sub=m.querySelector('.sub');sub?sub.insertAdjacentHTML('afterend',h):m.insertAdjacentHTML('afterbegin',h)};
+})();
+
+</script>
+<script>
+(()=>{
+/* ตรึงเวลาวิชา: เลือกวัน + คาบ (+ ระดับชั้น) ได้เอง
+   ตอนกด "จัดอัตโนมัติ" ระบบวางวิชานั้นลงช่องที่เลือกของทุกห้องที่มีวิชานี้ แล้วล็อกไว้ก่อน จากนั้นจัดวิชาอื่นรอบๆ
+   ข้อมูลเก็บที่ S.subjects[i].pins = [{d:วัน(0=จันทร์), p:คาบ(0=คาบ 1), g:'all'|'l'|'u'|'1'..'6'}] */
+const NGL={all:'ทุกระดับ',l:'ม.1–3',u:'ม.4–6',1:'ม.1',2:'ม.2',3:'ม.3',4:'ม.4',5:'ม.5',6:'ม.6'};
+const PIN=window.PIN={i:0,warn:[]};
+const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const inG=(g,lv)=>g=='all'||(g=='l'&&lv<=3)||(g=='u'&&lv>=4)||+g==lv;
+
+// ---------- วางคาบที่ตรึง (เรียกก่อนจัดอัตโนมัติ) ----------
+PIN.apply=()=>{
+ (S.pl||[]).forEach(x=>{const c=S.tt[x.c],y=c&&c[x.k];if(y&&y.lock&&y.a==x.a)delete c[x.k]});
+ S.pl=[];PIN.warn=[];
+ const busy=new Set(),bad={};
+ for(const c in S.tt)for(const k in S.tt[c]){const x=S.tt[c][k];if(!x.lock)continue;const g=byId('asg',x.a);if(g&&g.t)busy.add(g.t+'@'+k)}
+ const no=(s,d,p,why,cn)=>{const key=s.id+'|'+d+'-'+p+'|'+why;(bad[key]=bad[key]||{s,d,p,why,c:[]}).c.push(cn)};
+ S.subjects.forEach(s=>{const pins=(s.pins||[]).filter(z=>z&&z.d!=null&&z.p!=null);if(!pins.length)return;
+  S.classes.forEach(cl=>{const g=S.asg.find(a=>a.cls==cl.id&&a.sub==s.id);if(!g)return;
+   const t=g.t?byId('teachers',g.t):null;let left=hrsOf(s,cl.id);
+   pins.filter(z=>inG(z.g||'all',cl.lv)).forEach(z=>{if(left<=0)return;const d=+z.d,p=+z.p,k=K(d,p);
+    if(!(d>=0&&d<S.cfg.days&&p>=0&&p<S.cfg.per)||PT[p].k[G(cl.id)]!='c')return no(s,d,p,'ไม่ใช่คาบเรียนของห้อง',cl.name);
+    if(spAt(cl.lv,d,p))return no(s,d,p,'ชนคาบพิเศษ',cl.name);
+    const T=S.tt[cl.id]=S.tt[cl.id]||{},ex=T[k];
+    if(ex&&ex.lock&&ex.a!=g.id)return no(s,d,p,'ชนคาบที่ล็อกไว้',cl.name);
+    if(g.t){if(busy.has(g.t+'@'+k))return no(s,d,p,'ครูติดสอนห้องอื่นเวลาเดียวกัน',cl.name);
+     if(t&&t.off.includes(k))return no(s,d,p,'ครูไม่ว่างเวลานี้',cl.name);if(spTch(g.t,d,p))return no(s,d,p,'ครูติดคาบพิเศษ',cl.name);busy.add(g.t+'@'+k)}
+    T[k]={a:g.id,lock:1};S.pl.push({c:cl.id,k,a:g.id});left--})})});
+ for(const k in bad){const b=bad[k],n=b.c.length;PIN.warn.push(`ตรึง “${b.s.name}” ${DN[b.d]||'วัน?'} คาบ ${b.p+1} ไม่ได้ ${n} ห้อง (${b.why}): ${b.c.slice(0,4).join(', ')}${n>4?' …':''}`)}
+ save()};
+
+// ---------- ผูกกับตัวจัดตาราง/ข้อขัดแย้ง ----------
+const g1=gen;
+gen=function(){PIN.apply();g1();if(PIN.warn.length)V.msg+=` · ตรึงเวลาไม่ได้ ${PIN.warn.length} รายการ (ดูหน้าภาพรวม)`};
+const c1=conflicts;
+conflicts=function(){const o=c1();o.push(...(PIN.warn||[]));return o};
+
+// ---------- หน้าต่างตั้งเวลา ----------
+const sel=(j,k,arr,v)=>`<select onchange="PIN.set(${j},'${k}',this.value)">${arr.map(o=>`<option value="${o[0]}" ${String(v)==String(o[0])?'selected':''}>${o[1]}</option>`).join('')}</select>`;
+PIN.draw=()=>{const s=S.subjects[PIN.i];if(!s)return;const pins=s.pins=s.pins||[],
+ days=DN.slice(0,S.cfg.days).map((n,d)=>[d,n]),pers=P().map(p=>[p,`คาบ ${p+1} (${tm(p)}–${te(p)})${PT[p].n?' '+PT[p].n.split('|')[0]:''}`]),gs=Object.keys(NGL).map(k=>[k,NGL[k]]);
+ $('#dg').innerHTML=`<h3 style="margin-top:0">ตรึงเวลา: ${esc(s.name)}</h3><p class="mu" style="max-width:520px">เลือกวันและคาบที่ต้องการ ระบบจะวางวิชานี้ลงช่องนั้นให้ทุกห้องที่มีวิชานี้ในระดับที่เลือก แล้วล็อกไว้ (จัดอัตโนมัติจะไม่ย้าย) เพิ่มได้หลายช่อง แต่ไม่เกินจำนวนคาบ/สัปดาห์ของวิชา</p>
+ ${pins.length?`<table>${pins.map((z,j)=>`<tr><td>${sel(j,'d',days,z.d)}</td><td>${sel(j,'p',pers,z.p)}</td><td>${sel(j,'g',gs,z.g||'all')}</td><td><button class="d" onclick="PIN.del(${j})">ลบ</button></td></tr>`).join('')}</table>`:'<p class="mu">ยังไม่ได้ตรึงเวลา</p>'}
+ <p><button onclick="PIN.add()">+ เพิ่มเวลา</button></p>
+ <p><label><input type="checkbox" ${s.fx?'checked':''} onchange="S.subjects[PIN.i].fx=this.checked;save()"> ไม่จัดคาบที่เหลือให้อัตโนมัติ (ใช้เฉพาะคาบที่ตรึงไว้)</label></p>
+ <div class="bar"><button class="p" onclick="PIN.close(true)">บันทึกและจัดตารางใหม่</button><button onclick="PIN.close()">บันทึก</button></div>`};
+PIN.open=i=>{PIN.i=i;PIN.draw();$('#dg').showModal()};
+PIN.add=()=>{const s=S.subjects[PIN.i],l=(s.pins=s.pins||[])[s.pins.length-1];s.pins.push({d:l?Math.min(l.d+1,S.cfg.days-1):0,p:l?l.p:0,g:l?l.g:'all'});save();PIN.draw()};
+PIN.del=j=>{S.subjects[PIN.i].pins.splice(j,1);save();PIN.draw()};
+PIN.set=(j,k,v)=>{S.subjects[PIN.i].pins[j][k]=k=='g'?v:+v;save()};
+PIN.close=run=>{$('#dg').close();if(run)gen();R()};
+
+// ---------- แทนช่อง "ตรึงเวลา" ในตารางวิชา ----------
+const chip=z=>`${DN[z.d]||'?'} คาบ ${+z.p+1}${(z.g||'all')=='all'?'':' ('+NGL[z.g]+')'}`;
+const cell=i=>{const s=S.subjects[i],pins=s.pins||[];
+ return (pins.length?pins.map(z=>`<div style="white-space:nowrap">📌 ${chip(z)}</div>`).join(''):(s.fx?'<div class="mu" style="white-space:nowrap">ยังไม่ตรึงเวลา (ไม่จัดอัตโนมัติ)</div>':''))+`<button onclick="PIN.open(${i})">${pins.length?'แก้ไขเวลา':'ตั้งเวลา'}</button>`};
+const R6=R;
+R=function(){R6();if(V.tab!='subjects')return;const tb=document.querySelector('#m .sc table');if(!tb||!tb.rows.length)return;
+ if(tb.rows[0].cells[7])tb.rows[0].cells[7].textContent='ตรึงเวลา (เลือกวัน/คาบ)';
+ S.subjects.forEach((s,i)=>{const r=tb.rows[i+1];if(r&&r.cells[7])r.cells[7].innerHTML=cell(i)})};
 })();
 
 </script>
