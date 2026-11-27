@@ -724,11 +724,13 @@ R=function(){R3();if(!document.querySelector('.pv'))return;
    คาบพิเศษนับว่าไม่ว่าง ช่วงพักคั่นไม่นับว่าติดกัน */
 const NG=window.NG={};
 const nd=()=>S.cfg.days,np=()=>S.cfg.per;
-const slot=(c,d,p)=>{if(PT[p].k[G(c)]!='c')return -1;if(spAt(lvOf(c),d,p))return 1;return (S.tt[c]||{})[K(d,p)]?1:0};
+const slot=(c,d,p)=>{const y=PT[p].k[G(c)];if(y!='c')return(y=='f'&&PT[p].n)?1:-1;if(spAt(lvOf(c),d,p))return 1;return (S.tt[c]||{})[K(d,p)]?1:0};
 const MN=()=>Math.min(6,Math.max(1,Math.round(+S.cfg.noGapN)||2));
-const runs=(c,d)=>{const a=[];let f=-1,l=-1;
- for(let p=0;p<np();p++)if(slot(c,d,p)==1){if(f<0)f=p;l=p}
- for(let p=f+1;f>=0&&p<l;){if(slot(c,d,p)!=0){p++;continue}let e=p;while(e+1<l&&slot(c,d,e+1)==0)e++;if(e-p+1>=MN())a.push([p,e]);p=e+1}
+const runs=(c,d)=>{const a=[];let f=-1,l=-1,f0=-1,l0=-1;
+ for(let p=0;p<np();p++){const s=slot(c,d,p);if(s==1){if(f<0)f=p;l=p}if(s>=0){if(f0<0)f0=p;l0=p}}
+ if(f<0)return a;
+ if(S.cfg.noGapEdge){f=f0-1;l=l0+1}
+ for(let p=f+1;p<l;){if(slot(c,d,p)!=0){p++;continue}let e=p;while(e+1<l&&slot(c,d,e+1)==0)e++;if(e-p+1>=MN())a.push([p,e]);p=e+1}
  return a};
 const vday=(c,d)=>runs(c,d).reduce((s,r)=>s+(r[1]-r[0]+1)-MN()+1,0);
 const vc=c=>{let n=0;for(let d=0;d<nd();d++)n+=vday(c,d);return n};
@@ -745,7 +747,7 @@ NG.run=()=>{
  let before=0,after=0;
  S.classes.forEach(cl=>{const c=cl.id;let v=vc(c);before+=v;
   if(v){const T=S.tt[c]||(S.tt[c]={});let plateau=0;
-   for(let it=0;it<400&&v>0;it++){
+   for(let it=0;it<250&&v>0;it++){
     const les=[],emp=[];
     for(let d=0;d<nd();d++)for(let p=0;p<np();p++){const k=K(d,p),x=T[k];
      if(x){if(x.lock)continue;const L=T[K(d,p-1)],Rr=T[K(d,p+1)];if((L&&L.a==x.a)||(Rr&&Rr.a==x.a))continue;les.push([d,p,x])}
@@ -763,7 +765,7 @@ NG.run=()=>{
       const dl=a0-b0,m={da,pa,db,pb,x,g,s,dl,ka,kb,sd:da==db?0:1};
       if(dl<0){if(!best||dl<best.dl||(dl==best.dl&&m.sd<best.sd))best=m}else if(dl==0)zero.push(m)}}
     let m=best;
-    if(!m){if(plateau>=60||!zero.length)break;m=zero[Math.floor(rnd()*zero.length)];plateau++}else plateau=0;
+    if(!m){if(plateau>=30||!zero.length)break;m=zero[Math.floor(rnd()*zero.length)];plateau++}else plateau=0;
     delete T[m.ka];T[m.kb]=m.x;
     if(m.g.t){const t=m.g.t;st.tO[t+'@'+m.ka]--;st.tO[t+'@'+m.kb]=(st.tO[t+'@'+m.kb]||0)+1;st.td[t+'|'+m.da]--;st.td[t+'|'+m.db]=(st.td[t+'|'+m.db]||0)+1}
     if(m.s&&m.s.room){const r=m.s.room;st.rU[r+'@'+m.ka]--;st.rU[r+'@'+m.kb]=(st.rU[r+'@'+m.kb]||0)+1}
@@ -779,11 +781,12 @@ const c0=conflicts;
 conflicts=function(){const o=c0();if(S.cfg.noGap)o.push(...NG.list());return o};
 
 NG.set=v=>{S.cfg.noGap=!!v;save();R()};
+NG.setE=v=>{S.cfg.noGapEdge=!!v;save();R()};
 NG.setN=v=>{S.cfg.noGapN=+v||1;save();R()};
 NG.now=()=>{const r=NG.run();alert(`คาบว่างติดกัน ${MN()} คาบขึ้นไป ก่อนแก้ ${r.before} จุด · หลังแก้ ${r.after} จุด`+(r.after?'\nที่เหลือแก้ไม่ได้เพราะติดเงื่อนไขครู/ห้องพิเศษ/คาบล็อก ลองกด “จัดอัตโนมัติ” ใหม่ หรือย้ายคาบเอง':''));R()};
 const R5=R;
 R=function(){R5();if(V.tab!='set')return;const m=$('#m'),n=NG.count(),
- h=`<div class="card"><b>เงื่อนไขการจัดตาราง</b><div class="bar" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${S.cfg.noGap?'checked':''} onchange="NG.set(this.checked)"> เปิดใช้ ห้ามมีคาบว่างติดกัน (ตารางห้องเรียน)</label><label>ห้ามติดกัน <select onchange="NG.setN(this.value)">${[1,2,3,4,5,6].map(x=>`<option value="${x}" ${MN()==x?'selected':''}>${x}</option>`).join('')}</select> คาบขึ้นไป</label><button onclick="NG.now()">แก้ตารางปัจจุบัน</button><span class="${n?'er':'ok'}">${n?'ตอนนี้มีคาบว่างติดกัน '+MN()+' คาบขึ้นไป '+n+' จุด':'✓ ไม่มีคาบว่างติดกัน'}</span></div><p class="mu">คาบว่าง คือช่องเรียนที่ไม่มีวิชา แทรกอยู่ระหว่างคาบแรกกับคาบสุดท้ายของวันนั้น (ว่างช่วงท้ายวันหรือก่อนคาบแรกไม่นับ) เมื่อเปิดไว้ ตอนกด “จัดอัตโนมัติ” ระบบจะย้ายคาบไม่ให้มีคาบว่างตามจำนวนคาบที่เลือก (เช่น เลือก 1 = ห้ามมีคาบว่างคั่นเลย / เลือก 2 = ห้ามว่างติดกัน 2 คาบขึ้นไป ว่างคาบเดียวได้ / เลือก 3 = ว่างติดกันได้ไม่เกิน 2 คาบ) โดยไม่ชนครู ห้องพิเศษ หรือคาบพิเศษ ถ้าแก้ไม่ได้จะแจ้งจำนวนที่เหลือ และแสดงในข้อขัดแย้งหน้าภาพรวม</p></div>`;
+ h=`<div class="card"><b>เงื่อนไขการจัดตาราง</b><div class="bar" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${S.cfg.noGap?'checked':''} onchange="NG.set(this.checked)"> เปิดใช้ ห้ามมีคาบว่างติดกัน (ตารางห้องเรียน)</label><label>ห้ามติดกัน <select onchange="NG.setN(this.value)">${[1,2,3,4,5,6].map(x=>`<option value="${x}" ${MN()==x?'selected':''}>${x}</option>`).join('')}</select> คาบขึ้นไป</label><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${S.cfg.noGapEdge?'checked':''} onchange="NG.setE(this.checked)"> นับคาบว่างต้น/ท้ายวันด้วย</label><button onclick="NG.now()">แก้ตารางปัจจุบัน</button><span class="${n?'er':'ok'}">${n?'ตอนนี้มีคาบว่างติดกัน '+MN()+' คาบขึ้นไป '+n+' จุด':'✓ ไม่มีคาบว่างติดกัน'}</span></div><p class="mu">คาบว่าง คือช่องเรียนที่ไม่มีวิชา แทรกอยู่ระหว่างคาบแรกกับคาบสุดท้ายของวันนั้น (ปกติว่างช่วงท้ายวันหรือก่อนคาบแรกไม่นับ แต่ถ้ามีคาบกิจกรรมที่ตั้งชื่อไว้ เช่น โฮมรูมเช้า/เย็น จะถือว่านักเรียนอยู่โรงเรียน ช่องว่างที่คั่นกับกิจกรรมนั้นจึงนับด้วย และเปิด “นับคาบว่างต้น/ท้ายวันด้วย” เพื่อนับทุกช่องว่างของวัน) เมื่อเปิดไว้ ตอนกด “จัดอัตโนมัติ” ระบบจะย้ายคาบไม่ให้มีคาบว่างตามจำนวนคาบที่เลือก (เช่น เลือก 1 = ห้ามมีคาบว่างคั่นเลย / เลือก 2 = ห้ามว่างติดกัน 2 คาบขึ้นไป ว่างคาบเดียวได้ / เลือก 3 = ว่างติดกันได้ไม่เกิน 2 คาบ) โดยไม่ชนครู ห้องพิเศษ หรือคาบพิเศษ ถ้าแก้ไม่ได้จะแจ้งจำนวนที่เหลือ และแสดงในข้อขัดแย้งหน้าภาพรวม</p></div>`;
  const sub=m.querySelector('.sub');sub?sub.insertAdjacentHTML('afterend',h):m.insertAdjacentHTML('afterbegin',h)};
 })();
 
