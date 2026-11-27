@@ -611,4 +611,113 @@ R();
 })();
 
 </script>
+<script>
+/* แก้ส่งออก PDF/พิมพ์: คอลัมน์-แถวเท่ากันทุกช่อง + ตัดคำไทยตามคำ + ลดขนาดอักษรให้พอดีช่อง
+   วิธีใช้: วางไฟล์นี้ไว้โฟลเดอร์เดียวกับ index.html แล้วเพิ่มบรรทัดนี้ก่อน </body> (ต่อจาก <script> ตัวสุดท้าย)
+   <script src="pdf-fix.js"></script> */
+(()=>{
+const HH=28,   // ความสูงแถวหัวตาราง (px)
+      RH=58,   // ความสูง 1 วัน (px) ตารางครูแบ่งครึ่งเป็น 2 แถวย่อย
+      MIN=9, MINOK=11, LH=1.1;  // ขนาดอักษรต่ำสุด / ต่ำสุดที่ยอมรับได้ถ้าไม่ต้องตัดกลางคำ / line-height
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const st=document.createElement('style');
+st.textContent=`#pr .pf table.tt th,#pr .pf table.tt td,.pv table.tt th,.pv table.tt td{height:0!important;box-sizing:border-box}
+#pr .pf table.tt td,.pv table.tt td{overflow-wrap:normal!important;word-break:normal!important}
+#pr .pf table.tt,.pv table.tt{table-layout:fixed!important;width:100%!important}
+#pr .pf table.sj td.l,.pv table.sj td.l{overflow-wrap:normal!important}
+#pr .pf .wd,.pv .wd{display:inline-block}`;
+document.head.appendChild(st);
+
+const I=window.Intl&&Intl.Segmenter;
+const SG=I?new Intl.Segmenter('th',{granularity:'word'}):null,
+      GS=I?new Intl.Segmenter('th',{granularity:'grapheme'}):null;
+const gr=s=>GS?[...GS.segment(s)].map(x=>x.segment):Array.from(s);
+
+function toks(s){
+ const a=SG?[...SG.segment(s)].map(x=>x.segment):s.split(/(\s+)/).filter(Boolean),out=[];
+ for(const t of a){
+  if(/^\s+$/.test(t)){out.push({t:' ',sp:1});continue}
+  const l=out[out.length-1];
+  if(l&&!l.sp&&(/^[)\]}»”’!?,.;:\/\-ๆฯ%]+$/.test(t)||/[(\[{“‘«]$/.test(l.t)||(/^\d/.test(t)&&/[.\/\d]$/.test(l.t)))){l.t+=t;continue}
+  out.push({t})}
+ return out}
+
+function wrap(tk,W,m){
+ const lines=[];let cur='',broke=0;
+ const push=()=>{if(cur!==''){lines.push(cur.replace(/\s+$/,''));cur=''}};
+ for(const k of tk){
+  if(k.sp){if(cur!=='')cur+=' ';continue}
+  const t=k.t;
+  if(m(cur+t)<=W){cur+=t;continue}
+  push();
+  if(m(t)<=W){cur=t;continue}
+  broke=1;
+  for(const g of gr(t)){if(cur!==''&&m(cur+g)>W)push();cur+=g}}
+ push();return{lines,broke}}
+
+function FIT(root){
+ const ctx=document.createElement('canvas').getContext('2d');
+ root.querySelectorAll('table.sj td.l').forEach(td=>{if(td.dataset.w)return;td.dataset.w=1;
+  td.innerHTML=toks(td.textContent).map(k=>k.sp?' ':`<span class="wd">${esc(k.t)}</span>`).join('')});
+ root.querySelectorAll('table.tt').forEach(tb=>{
+  if(tb.dataset.fit)return;tb.dataset.fit=1;
+  const t2=tb.classList.contains('t2'),cols=[...tb.querySelectorAll('col')];
+  cols.forEach(c=>c.style.width=(100/cols.length)+'%');
+  [...tb.rows].forEach((r,i)=>r.style.height=(i<2?HH:(t2?RH/2:RH))+'px');
+  const items=[];
+  tb.querySelectorAll('td').forEach(td=>{
+   const ps=[];let c='';
+   td.childNodes.forEach(n=>{if(n.nodeName=='BR'){ps.push(c);c=''}else c+=n.textContent});ps.push(c);
+   const P=ps.map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean);
+   if(P.length)items.push({td,P,tk:P.map(toks)})});
+  items.forEach(x=>x.td.textContent='');
+  void tb.offsetHeight;
+  items.forEach(x=>{
+   const td=x.td,cs=getComputedStyle(td),pd=k=>parseFloat(cs['padding'+k])||0;
+   const W=td.clientWidth-pd('Left')-pd('Right')-2,H=td.clientHeight-pd('Top')-pd('Bottom');
+   if(W<=0||H<=0)return;
+   const base=parseFloat(cs.fontSize)||18;let nb=null,wb=null,last=null;
+   for(let s=base;s>=MIN;s-=.5){
+    ctx.font=`${cs.fontWeight} ${s}px ${cs.fontFamily}`;
+    const m=z=>ctx.measureText(z).width;let out=[],br=0;
+    for(const k of x.tk){const r=wrap(k,W,m);out.push(...r.lines);br|=r.broke}
+    last={s,out};
+    if(out.length*s*LH<=H){if(!br){nb={s,out};break}if(!wb)wb={s,out}}}
+   const c=(nb&&nb.s>=MINOK)?nb:(wb||nb||last);
+   td.innerHTML=`<div style="height:${Math.max(1,H-1)}px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;font-size:${c.s}px;line-height:${LH}">${c.out.map(l=>`<div style="white-space:nowrap">${esc(l)}</div>`).join('')}</div>`})})}
+window.FIT=FIT;
+
+window.doPDF=async function(b){
+ const f=V.pdf,L=f.mode=='cls'?S.classes:S.teachers,ids=f.sel=='all'?L.map(x=>x.id):[f.sel];if(!ids.length)return;
+ const pr=$('#pr');b.disabled=true;b.textContent='กำลังสร้าง...';
+ try{
+  await document.fonts.load('20px THSarabunPSK');
+  if(!document.fonts.check('20px THSarabunPSK'))throw Error('โหลดฟอนต์ THSarabun.ttf ไม่สำเร็จ (วางไฟล์ไว้โฟลเดอร์เดียวกับหน้านี้)');
+  pr.innerHTML=ids.map(i=>pg(f.mode,i)).join('');pr.classList.add('cap');
+  document.documentElement.style.setProperty('--pfs',f.fs+'px');
+  await new Promise(r=>setTimeout(r,200));
+  FIT(pr);
+  const pdf=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),secs=pr.querySelectorAll('section');
+  for(let i=0;i<secs.length;i++){
+   const cv=await html2canvas(secs[i],{scale:3,backgroundColor:'#fff'});
+   if(i)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',0,0,297,210)}
+  pdf.save('timetable-'+f.mode+'.pdf')
+ }catch(e){alert(e.message)}
+ pr.classList.remove('cap');R()};
+
+const p0=window.print.bind(window);
+window.print=async function(){
+ const pr=document.getElementById('pr');
+ if(pr&&pr.querySelector('.pf table.tt')&&!pr.classList.contains('cap')){
+  try{await document.fonts.load('20px THSarabunPSK');pr.classList.add('cap');
+   await new Promise(r=>requestAnimationFrame(()=>r()));FIT(pr)}catch(e){}
+  pr.classList.remove('cap')}
+ p0()};
+
+const R3=R;
+R=function(){R3();if(!document.querySelector('.pv'))return;
+ document.fonts.load('18px THSarabunPSK').catch(()=>{}).then(()=>document.querySelectorAll('.pv').forEach(e=>FIT(e)))};
+})();
+
+</script>
 </body></html>
